@@ -1,0 +1,1 @@
+Imagens utilizadas no Marketplace do ERP para documentar a funcionalidade.
