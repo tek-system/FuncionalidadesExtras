@@ -1,0 +1,2401 @@
+{
+	"info": {
+		"_postman_id": "506dc14e-da17-4958-b3ac-e07e77b488b6",
+		"name": "Cobrança Pagamento - Cliente",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30365133"
+	},
+	"item": [
+		{
+			"name": "SANDBOX",
+			"item": [
+				{
+					"name": "Token",
+					"item": [
+						{
+							"name": "Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody); \r",
+											"postman.setGlobalVariable(\"access_token_sandbox\", jsonData.access_token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "grant_type",
+											"value": "client_credentials",
+											"type": "text"
+										},
+										{
+											"key": "client_id",
+											"value": "{{ClientID_SDX}}",
+											"type": "text"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{ClientSecret_SDX}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/auth/server-mtls/v2/token",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"auth",
+										"server-mtls",
+										"v2",
+										"token"
+									]
+								},
+								"description": "Generated from cURL: curl --location --request POST 'https://openapisandbox.prebanco.com.br/auth/server-mtls/v1/token' \\\n--header 'Cookie: f0ee00a3c6086fde9072d03fe06f4365=8da38a76fa65f1f4bba6399a74c60380; f0ee00a3c6086fde9072d03fe06f4365=3f7ea64c54953729c74670b76eeaa25c' \\\n--header 'Content-Type: application/x-www-form-urlencoded' \\\n--data-urlencode 'grant_type=client_credentials' \\\n--data-urlencode 'client_id=1542912c-00f3-4e86-9cbc-fee8cf560902' \\\n--data-urlencode 'client_secret=5136c071-a2b6-4b7f-8222-bc50e868ddb0'"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cobrança - Pagamento de boleto - Reestruturada",
+					"item": [
+						{
+							"name": "Consulta de Parâmetros e Limites de Pagamento de Boletos de Cobrança - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"agenciaCliente\": \"12345\",\n  \"digitoAgencia\": \"1\",\n  \"digitoConta\": \"9\",\n  \"contaCliente\": \"1234567\",\n  \"bancoCliente\": \"0\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-parametros-pgto/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-parametros-pgto",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Valida pagamentos de títulos [Bradesco] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"/**\r",
+											"\r",
+											"* Implementação do modelo Server-to-Server\r",
+											"\r",
+											"* @Author: bradesco-ob-squad-apinaoregulatoria@ciandt.com\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* INICIALIZANDO AS DEPENDENCIAS\r",
+											"\r",
+											"* Necessário ter as dependências abaixo: momentJS e jsrsasign\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"var navigator = {}; //fake a navigator object for the lib\r",
+											"\r",
+											"var window = {}; //fake a window object for the lib\r",
+											"\r",
+											"eval(pm.globals.get(\"server_to_server_jsrsasign-js\")); //import javascript jsrsasign\r",
+											"\r",
+											"var moment = require('moment');\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Carregando algumas variáveis relevantes para o processo\r",
+											"\r",
+											"* iat, exp e nonce. Além do timestamp para incluir nos headers\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"// load values\r",
+											"\r",
+											"var now = new Date();\r",
+											"\r",
+											"var now1Hour = new Date();\r",
+											"\r",
+											"now1Hour.setHours(now.getHours() + 1);\r",
+											"\r",
+											"const BREAK_LINE = \"\\n\";\r",
+											"\r",
+											"const ALG_SHA256 = \"SHA256\";\r",
+											"\r",
+											"const ALG_SHA256_WITH_RSA = \"SHA256withRSA\";\r",
+											"\r",
+											"\r",
+											"\r",
+											"const iat = Math.floor(now.getTime() / 1000);\r",
+											"\r",
+											"const exp = Math.floor(now1Hour.getTime() / 1000);\r",
+											"\r",
+											"const nonce = now.getTime() + \"\";\r",
+											"\r",
+											"var momentTmp = moment(now).format((\"YYYY-MM-DDThh:mm:ssZ\"));\r",
+											"\r",
+											"// globals var\r",
+											"\r",
+											"const aud = pm.globals.get(\"server_to_server_aud\");\r",
+											"\r",
+											"const authTokenUrl = pm.globals.get(\"server_to_server_auth_token\");\r",
+											"\r",
+											"const accessToken = pm.globals.get(\"server_to_server_access_token\");\r",
+											"\r",
+											"const privateKey = pm.globals.get(\"server_to_server_privateKey\");\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Constroi um texto referente aos dados do request\r",
+											"\r",
+											"* Este valor será assinado pela chave privada do requisitante posteriormente e incluido no header X-Brad-Signature\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function buildRequestText(authToken) {\r",
+											"\r",
+											"    var requestBody = (pm.request.body.raw) ? pm.request.body.raw : \"\";\r",
+											"    var requestText = [pm.request.method, pm.request.url.getPath(), pm.request.url.getQueryString(),\r",
+											"\r",
+											"        requestBody, authToken, nonce, momentTmp, ALG_SHA256].join(BREAK_LINE);\r",
+											"\r",
+											"    return requestText;\r",
+											"\r",
+											"}\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Constroi a variavel Assertion\r",
+											"\r",
+											"* Este valor é utilizado durante na solicitação do token de acesso da API /auth/server/v1.1/token\r",
+											"\r",
+											"* Trata-se de um token JWT assinado com a chave privada de quem está realizando a requisição\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function buildAssertion() {\r",
+											"    var header = {\r",
+											"        \"alg\": \"RS256\",\r",
+											"        \"typ\": \"JWT\"\r",
+											"    };\r",
+											"    var payload = {\r",
+											"        \"aud\": aud,\r",
+											"        \"sub\": accessToken,\r",
+											"        \"iat\": iat,\r",
+											"        \"exp\": exp,\r",
+											"        \"jti\": nonce,\r",
+											"        \"ver\": \"1.1\"\r",
+											"    };\r",
+											"\r",
+											"    var sHeader = JSON.stringify(header);\r",
+											"    var sPayload = JSON.stringify(payload);\r",
+											"    var assertion = null;\r",
+											"    if (privateKey) {\r",
+											"        assertion = KJUR.jws.JWS.sign(header.alg, sHeader, sPayload, privateKey);\r",
+											"    }\r",
+											"    return assertion;\r",
+											"\r",
+											"}\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Assina o texto referente aos dados do request\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function signRequestText(requestText) {\r",
+											"\r",
+											"    var kjursig = new KJUR.crypto.Signature({ \"alg\": ALG_SHA256_WITH_RSA });\r",
+											"    kjursig.init(privateKey);\r",
+											"    kjursig.updateString(requestText);\r",
+											"    var hash = kjursig.sign();\r",
+											"    return hextob64(hash);\r",
+											"\r",
+											"}\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Request referente a API /auth/server/v1.1/token\r",
+											"\r",
+											"* É necessario inicialmente realizar uma autenticação do usuário, para em seguida, seguir com a realização da API que o requisitante deseja\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"var requestTokenOptions = {\r",
+											"    url: authTokenUrl,\r",
+											"    method: 'POST',\r",
+											"    header: {\r",
+											"\r",
+											"        \"Content-Type\": \"application/x-www-form-urlencoded\"\r",
+											"    },\r",
+											"\r",
+											"    body: {\r",
+											"        mode: 'urlencoded',\r",
+											"        urlencoded: [\r",
+											"\r",
+											"            { key: 'grant_type', value: 'urn:ietf:params:oauth:grant-type:jwt-bearer' },\r",
+											"            { key: 'assertion', value: buildAssertion() },\r",
+											"\r",
+											"        ]\r",
+											"\r",
+											"    }\r",
+											"\r",
+											"}\r",
+											"\r",
+											"pm.sendRequest(requestTokenOptions, function (err, response) {\r",
+											"\r",
+											"    const jsonData = response.json();\r",
+											"\r",
+											"    var bearer = jsonData.token_type + \" \" + jsonData.access_token;\r",
+											"    var authToken = jsonData.access_token;\r",
+											"    var requestText = buildRequestText(authToken)\r",
+											"    var signature = signRequestText(requestText);\r",
+											"\r",
+											"    // including headers\r",
+											"\r",
+											"    pm.variables.set('signature', signature);\r",
+											"    pm.variables.set('nonce', nonce);\r",
+											"    pm.variables.set('alg', \"SHA256\");\r",
+											"    pm.variables.set('timestamp', momentTmp);\r",
+											"    pm.variables.set('AuthBearer', bearer);\r",
+											"\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDeb\": 0,\r\n  \"bancoTitulo\": 0,\r\n  \"dadosEntrada\": \"000000000023795106800000011112856090029995343202226520\",\r\n  \"tipoEntrada\": 1,\r\n  \"contaDeb\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-valida-titulo-pagamento/validaTituloPagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-valida-titulo-pagamento",
+										"validaTituloPagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Valida pagamentos de títulos [Outros Bancos] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDeb\": 0,\r\n  \"bancoTitulo\": 0,\r\n  \"dadosEntrada\": \"000000000003391108800001916639201493900358024680430102\",\r\n  \"tipoEntrada\": 1,\r\n  \"contaDeb\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-valida-titulo-pagamento/validaTituloPagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-valida-titulo-pagamento",
+										"validaTituloPagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Valida pagamentos de títulos - Erro Código de barras inválido",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDeb\": 0,\r\n  \"bancoTitulo\": 0,\r\n  \"dadosEntrada\": \"03391108800001916639201493900358024680430102\",\r\n  \"tipoEntrada\": 1,\r\n  \"contaDeb\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-valida-titulo-pagamento/validaTituloPagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-valida-titulo-pagamento",
+										"validaTituloPagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pré-efetivação de pagamento [Bradesco] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"/**\r",
+											"\r",
+											"* Implementação do modelo Server-to-Server\r",
+											"\r",
+											"* @Author: bradesco-ob-squad-apinaoregulatoria@ciandt.com\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* INICIALIZANDO AS DEPENDENCIAS\r",
+											"\r",
+											"* Necessário ter as dependências abaixo: momentJS e jsrsasign\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"var navigator = {}; //fake a navigator object for the lib\r",
+											"\r",
+											"var window = {}; //fake a window object for the lib\r",
+											"\r",
+											"eval(pm.globals.get(\"server_to_server_jsrsasign-js\")); //import javascript jsrsasign\r",
+											"\r",
+											"var moment = require('moment');\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Carregando algumas variáveis relevantes para o processo\r",
+											"\r",
+											"* iat, exp e nonce. Além do timestamp para incluir nos headers\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"// load values\r",
+											"\r",
+											"var now = new Date();\r",
+											"\r",
+											"var now1Hour = new Date();\r",
+											"\r",
+											"now1Hour.setHours(now.getHours() + 1);\r",
+											"\r",
+											"const BREAK_LINE = \"\\n\";\r",
+											"\r",
+											"const ALG_SHA256 = \"SHA256\";\r",
+											"\r",
+											"const ALG_SHA256_WITH_RSA = \"SHA256withRSA\";\r",
+											"\r",
+											"\r",
+											"\r",
+											"const iat = Math.floor(now.getTime() / 1000);\r",
+											"\r",
+											"const exp = Math.floor(now1Hour.getTime() / 1000);\r",
+											"\r",
+											"const nonce = now.getTime() + \"\";\r",
+											"\r",
+											"var momentTmp = moment(now).format((\"YYYY-MM-DDThh:mm:ssZ\"));\r",
+											"\r",
+											"// globals var\r",
+											"\r",
+											"const aud = pm.globals.get(\"server_to_server_aud\");\r",
+											"\r",
+											"const authTokenUrl = pm.globals.get(\"server_to_server_auth_token\");\r",
+											"\r",
+											"const accessToken = pm.globals.get(\"server_to_server_access_token\");\r",
+											"\r",
+											"const privateKey = pm.globals.get(\"server_to_server_privateKey\");\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Constroi um texto referente aos dados do request\r",
+											"\r",
+											"* Este valor será assinado pela chave privada do requisitante posteriormente e incluido no header X-Brad-Signature\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function buildRequestText(authToken) {\r",
+											"\r",
+											"    var requestBody = (pm.request.body.raw) ? pm.request.body.raw : \"\";\r",
+											"    var requestText = [pm.request.method, pm.request.url.getPath(), pm.request.url.getQueryString(),\r",
+											"\r",
+											"        requestBody, authToken, nonce, momentTmp, ALG_SHA256].join(BREAK_LINE);\r",
+											"\r",
+											"    return requestText;\r",
+											"\r",
+											"}\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Constroi a variavel Assertion\r",
+											"\r",
+											"* Este valor é utilizado durante na solicitação do token de acesso da API /auth/server/v1.1/token\r",
+											"\r",
+											"* Trata-se de um token JWT assinado com a chave privada de quem está realizando a requisição\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function buildAssertion() {\r",
+											"    var header = {\r",
+											"        \"alg\": \"RS256\",\r",
+											"        \"typ\": \"JWT\"\r",
+											"    };\r",
+											"    var payload = {\r",
+											"        \"aud\": aud,\r",
+											"        \"sub\": accessToken,\r",
+											"        \"iat\": iat,\r",
+											"        \"exp\": exp,\r",
+											"        \"jti\": nonce,\r",
+											"        \"ver\": \"1.1\"\r",
+											"    };\r",
+											"\r",
+											"    var sHeader = JSON.stringify(header);\r",
+											"    var sPayload = JSON.stringify(payload);\r",
+											"    var assertion = null;\r",
+											"    if (privateKey) {\r",
+											"        assertion = KJUR.jws.JWS.sign(header.alg, sHeader, sPayload, privateKey);\r",
+											"    }\r",
+											"    return assertion;\r",
+											"\r",
+											"}\r",
+											"\r",
+											"\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Assina o texto referente aos dados do request\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"function signRequestText(requestText) {\r",
+											"\r",
+											"    var kjursig = new KJUR.crypto.Signature({ \"alg\": ALG_SHA256_WITH_RSA });\r",
+											"    kjursig.init(privateKey);\r",
+											"    kjursig.updateString(requestText);\r",
+											"    var hash = kjursig.sign();\r",
+											"    return hextob64(hash);\r",
+											"\r",
+											"}\r",
+											"\r",
+											"/**\r",
+											"\r",
+											"* Request referente a API /auth/server/v1.1/token\r",
+											"\r",
+											"* É necessario inicialmente realizar uma autenticação do usuário, para em seguida, seguir com a realização da API que o requisitante deseja\r",
+											"\r",
+											"*/\r",
+											"\r",
+											"var requestTokenOptions = {\r",
+											"    url: authTokenUrl,\r",
+											"    method: 'POST',\r",
+											"    header: {\r",
+											"\r",
+											"        \"Content-Type\": \"application/x-www-form-urlencoded\"\r",
+											"    },\r",
+											"\r",
+											"    body: {\r",
+											"        mode: 'urlencoded',\r",
+											"        urlencoded: [\r",
+											"\r",
+											"            { key: 'grant_type', value: 'urn:ietf:params:oauth:grant-type:jwt-bearer' },\r",
+											"            { key: 'assertion', value: buildAssertion() },\r",
+											"\r",
+											"        ]\r",
+											"\r",
+											"    }\r",
+											"\r",
+											"}\r",
+											"\r",
+											"pm.sendRequest(requestTokenOptions, function (err, response) {\r",
+											"\r",
+											"    const jsonData = response.json();\r",
+											"\r",
+											"    var bearer = jsonData.token_type + \" \" + jsonData.access_token;\r",
+											"    var authToken = jsonData.access_token;\r",
+											"    var requestText = buildRequestText(authToken)\r",
+											"    var signature = signRequestText(requestText);\r",
+											"\r",
+											"    // including headers\r",
+											"\r",
+											"    pm.variables.set('signature', signature);\r",
+											"    pm.variables.set('nonce', nonce);\r",
+											"    pm.variables.set('alg', \"SHA256\");\r",
+											"    pm.variables.set('timestamp', momentTmp);\r",
+											"    pm.variables.set('AuthBearer', bearer);\r",
+											"\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 2,\r\n  \"dataPagamento\": 20250227,\r\n  \"digitoAgencia\": 0,\r\n  \"formaCaptura\": 1,\r\n  \"valorTitulo\": 11.21,\r\n  \"bancoDebito\": 237,\r\n  \"numeroAutenticacao\": \"\",\r\n  \"agencia\": 2856,\r\n  \"contaDebito\": 464,\r\n  \"agenciaDebito\": 448,\r\n  \"dataMovimento\": 20250227,\r\n  \"dataVencimento\": 20261231,\r\n  \"digitoConta\": \"2\",\r\n  \"horaTransacao\": 143500,\r\n  \"linhaExtrato\": \"1234567890123456789012345678901234567890\",\r\n  \"numeroCtrlCip\": \"0\",\r\n  \"codigoBarras\": \"23797100500000011213861090097002841600410000\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pre-efetivacao/pre-efetivacao-pagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pre-efetivacao",
+										"pre-efetivacao-pagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pré-efetivação de pagamento [OUTROS BANCOS] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n   \"agencia\": 2856,\r\n   \"formaCaptura\": 1,\r\n   \"codigoBarras\": \"03391108800001916639201493900358024680430102\",\r\n   \"dataVencimento\": 20261201,\r\n   \"valorTitulo\": 1916.63,\r\n   \"dataMovimento\": 20250507,\r\n   \"dataPagamento\": 20250507,\r\n   \"horaTransacao\": 184000,\r\n   \"numeroAutenticacao\": \"\",\r\n   \"formaPagamento\": 2,\r\n   \"bancoDebito\": 237,\r\n   \"agenciaDebito\": 2856,\r\n   \"digitoAgencia\": 0,\r\n   \"contaDebito\": 50035,\r\n   \"digitoConta\": 0,\r\n   \"linhaExtrato\": \"\",\r\n   \"numeroCtrlCip\": \"0237CP01251271370358\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pre-efetivacao/pre-efetivacao-pagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pre-efetivacao",
+										"pre-efetivacao-pagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pré-efetivação de pagamento - Erro - Valor divergente",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"agencia\": 2856,\r\n    \"formaCaptura\": 2,\r\n    \"codigoBarras\": \"23791131100000001002856095127000025102226520\",\r\n    \"dataVencimento\": 20261201,\r\n    \"valorTitulo\": 0,\r\n    \"dataMovimento\": 20250507,\r\n    \"dataPagamento\": 20250507,\r\n    \"horaTransacao\": 184000,\r\n    \"numeroAutenticacao\": \"\",\r\n    \"formaPagamento\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": 0,\r\n    \"linhaExtrato\": \"\",\r\n    \"numeroCtrlCip\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pre-efetivacao/pre-efetivacao-pagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pre-efetivacao",
+										"pre-efetivacao-pagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pré-efetivação de pagamento - Erro - Valor não informado",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n   \"agencia\": 2856,\r\n   \"formaCaptura\": 1,\r\n   \"codigoBarras\": \"03391108800001916639201493900358024680430102\",\r\n   \"dataVencimento\": 20261201,\r\n   \"valorTitulo\": 1.01,\r\n   \"dataMovimento\": 20250507,\r\n   \"dataPagamento\": 20250507,\r\n   \"horaTransacao\": 184000,\r\n   \"numeroAutenticacao\": \"\",\r\n   \"formaPagamento\": 2,\r\n   \"bancoDebito\": 237,\r\n   \"agenciaDebito\": 2856,\r\n   \"digitoAgencia\": 0,\r\n   \"contaDebito\": 50035,\r\n   \"digitoConta\": 0,\r\n   \"linhaExtrato\": \"\",\r\n   \"numeroCtrlCip\": \"0237CP01251271370358\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pre-efetivacao/pre-efetivacao-pagamento",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pre-efetivacao",
+										"pre-efetivacao-pagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Efetivação de pagamento [Bradesco] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 2,\r\n  \"tipoIntermediador\": \"\",\r\n  \"dataPagamento\": 20250507,\r\n  \"digitoAgencia\": 0,\r\n  \"formaCaptura\": 2,\r\n  \"valorTitulo\": 348974,\r\n  \"indicadorFuncao\": \"1\",\r\n  \"bancoDebito\": 237,\r\n  \"numeroAutenticacao\": \"\",\r\n  \"cnpjCpfPtdor\": 123456789,\r\n  \"contaDebito\": 50035,\r\n  \"transactionId\": 22,\r\n  \"agenciaDebito\": 2856,\r\n  \"ctrlCnpjPtdor\": 82,\r\n  \"dataMovimento\": 20250507,\r\n  \"dataVencimento\": 20261231,\r\n  \"digitoConta\": \"0\",\r\n  \"horaTransacao\": 93104,\r\n  \"linhaExtrato\": \"teste pago api\",\r\n  \"numeroCtrlCip\": \"\",\r\n  \"codigoBarras\": \"23791131100000001002856095127000025102226520\",\r\n  \"filialCnpjPtdor\": 0,\r\n  \"codigoAgencia\": 2856\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-efetivacao/solicitacao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-efetivacao",
+										"solicitacao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Efetivação de pagamento [Outros Bancos] - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"codigoAgencia\": 2856,\r\n    \"formaCaptura\": 2,\r\n    \"codigoBarras\": \"03391108800001916639201493900358024680430102\",\r\n    \"dataVencimento\": 20261231,\r\n    \"valorTitulo\": 1916.63,\r\n    \"dataMovimento\": 20250507,\r\n    \"dataPagamento\": 20250507,\r\n    \"horaTransacao\": 93104,\r\n    \"numeroAutenticacao\": \"\",\r\n    \"formaPagamento\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": 0,\r\n    \"linhaExtrato\": \"teste pago api\",\r\n    \"indicadorFuncao\": \"1\",\r\n    \"numeroCtrlCip\": \"0237CP01251271370364\",\r\n    \"transactionId\": 24,\r\n    \"tipoIntermediador\": \"\",\r\n    \"cnpjCpfPtdor\": 453179268,\r\n    \"filialCnpjPtdor\": 0,\r\n    \"ctrlCnpjPtdor\": 82\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-efetivacao/solicitacao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-efetivacao",
+										"solicitacao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Efetivação de pagamento - Erro TransactionID Existente",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"codigoAgencia\": 2856,\r\n    \"formaCaptura\": 2,\r\n    \"codigoBarras\": \"23796106800000001112856090029995327802226520\",\r\n    \"dataVencimento\": 20261231,\r\n    \"valorTitulo\": 3489.74,\r\n    \"dataMovimento\": 20250507,\r\n    \"dataPagamento\": 20250507,\r\n    \"horaTransacao\": 93104,\r\n    \"numeroAutenticacao\": \"\",\r\n    \"formaPagamento\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": 0,\r\n    \"linhaExtrato\": \"teste pago api\",\r\n    \"indicadorFuncao\": \"1\",\r\n    \"numeroCtrlCip\": \"\",\r\n    \"transactionId\": 21,\r\n    \"tipoIntermediador\": \"\",\r\n    \"cnpjCpfPtdor\": 0,\r\n    \"filialCnpjPtdor\": 0,\r\n    \"ctrlCnpjPtdor\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-efetivacao/solicitacao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-efetivacao",
+										"solicitacao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Efetivação de pagamento - Erro NumeroControle",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"codigoAgencia\": 2856,\r\n    \"formaCaptura\": 2,\r\n    \"codigoBarras\": \"03391108800001916639201493900358024680430102\",\r\n    \"dataVencimento\": 20261231,\r\n    \"valorTitulo\": 3489.74,\r\n    \"dataMovimento\": 20250507,\r\n    \"dataPagamento\": 20250507,\r\n    \"horaTransacao\": 93104,\r\n    \"numeroAutenticacao\": \"\",\r\n    \"formaPagamento\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": 0,\r\n    \"linhaExtrato\": \"teste pago api\",\r\n    \"indicadorFuncao\": \"1\",\r\n    \"numeroCtrlCip\": \"\",\r\n    \"transactionId\": 22,\r\n    \"tipoIntermediador\": \"\",\r\n    \"cnpjCpfPtdor\": 455555555555,\r\n    \"filialCnpjPtdor\": 0,\r\n    \"ctrlCnpjPtdor\": 82\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-efetivacao/solicitacao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-efetivacao",
+										"solicitacao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de pagamento Especifico - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"numeroBanco\": \"237\",\r\n  \"dataPagamento\": \"20250313\",\r\n  \"numeroProtocolo\": \"1\",\r\n  \"numeroConta\": \"1234567\",\r\n  \"versaoLayout\": \"1\",\r\n  \"numeroAgencia\": \"448\",\r\n  \"transactionId\": \"857496259\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pagamento-consulta/consulta-pagamento-especifico",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pagamento-consulta",
+										"consulta-pagamento-especifico"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de pagamento Especifico - Erro - ID Transação não encontrado",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"numeroBanco\": \"237\",\r\n  \"dataPagamento\": \"20250313\",\r\n  \"numeroProtocolo\": \"1\",\r\n  \"numeroConta\": \"1234567\",\r\n  \"versaoLayout\": \"1\",\r\n  \"numeroAgencia\": \"448\",\r\n  \"transactionId\": \"857496259\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pagamento-consulta/consulta-pagamento-especifico",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pagamento-consulta",
+										"consulta-pagamento-especifico"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de pagamento Especifico - Erro - Número de protocolo cópia",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": " {\r\n    \"versaoLayout\": \"001\",\r\n    \"numeroBanco\": 237,\r\n    \"numeroAgencia\": 2856,\r\n    \"numeroConta\": 50035,\r\n    \"numeroProtocolo\": 0,\r\n    \"dataPagamento\": 0,\r\n    \"transactionId\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-pagamento-consulta/consulta-pagamento-especifico",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pagamento-consulta",
+										"consulta-pagamento-especifico"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar agendamentos e pagamentos de boletos - Data final inferior a inicial",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versaoLayout\": 1,\r\n    \"bancoDaContaDebito\": 237,\r\n    \"agenciaDaContaDebito\": 3995,\r\n    \"contaCorrenteDebito\": 75557,\r\n    \"situacaoPagamento\": 1,\r\n    \"dataInicial\": \"20291025\",\r\n    \"dataFinal\": \"20241125\",\r\n    \"restartEntrada\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-agendamentos-pgto/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-agendamentos-pgto",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar agendamentos e pagamentos de boletos - Sem retorno consulta",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versaoLayout\": 1,\r\n    \"bancoDaContaDebito\": 237,\r\n    \"agenciaDaContaDebito\": 3995,\r\n    \"contaCorrenteDebito\": 75557,\r\n    \"situacaoPagamento\": 1,\r\n    \"dataInicial\": \"20291025\",\r\n    \"dataFinal\": \"20241125\",\r\n    \"restartEntrada\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-agendamentos-pgto/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-agendamentos-pgto",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar agendamentos e pagamentos de boletos - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versaoLayout\": 1,\r\n    \"bancoDaContaDebito\": 237,\r\n    \"agenciaDaContaDebito\": 3995,\r\n    \"contaCorrenteDebito\": 75557,\r\n    \"situacaoPagamento\": 1,\r\n    \"dataInicial\": \"20250125\",\r\n    \"dataFinal\": \"20250225\",\r\n    \"restartEntrada\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-agendamentos-pgto/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-agendamentos-pgto",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Exclusão de agendamento - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versao\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": \"0\",\r\n    \"numeroProtocolo\": 821,\r\n    \"idTransacao\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-excluir-agendamento/exclusao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-excluir-agendamento",
+										"exclusao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Exclusão de agendamento - Erro - Agendamento não encontrado",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versao\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": \"0\",\r\n    \"numeroProtocolo\": 812,\r\n    \"idTransacao\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-excluir-agendamento/exclusao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-excluir-agendamento",
+										"exclusao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Exclusão de agendamento - Erro - Sem Transaction ID / Protocolo",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versao\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\": \"0\",\r\n    \"numeroProtocolo\": 0,\r\n    \"idTransacao\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-excluir-agendamento/exclusao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-excluir-agendamento",
+										"exclusao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Alteração do Agendamento de Pagamento - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 0,\r\n  \"agenciaDebito\": 2856,\r\n  \"dataPagamento\": 20250521,\r\n  \"digitoAgencia\": 0,\r\n  \"numeroProtocolo\": 821,\r\n  \"idTransacao\": 0,\r\n  \"digitoConta\": \"0\",\r\n  \"bancoDebito\": 237,\r\n  \"versao\": 2,\r\n  \"contaDebito\": 50035,\r\n  \"valorPagamento\": 5000.01\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-alterar-agendamento/alteracao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-alterar-agendamento",
+										"alteracao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Alteração do Agendamento de Pagamento - Erro - Agendamento não encontrado",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versao\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,       \r\n    \"digitoConta\" : 0,\r\n    \"formaPagamento\": 0,\r\n    \"numeroProtocolo\": 0,\r\n    \"idTransacao\": 999,\r\n    \"dataPagamento\": 20250521,\r\n    \"valorPagamento\": 5000.01\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-alterar-agendamento/alteracao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-alterar-agendamento",
+										"alteracao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Alteração do Agendamento de Pagamento - Erro - IDtransação e Protocolo não informado",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"versao\": 2,\r\n    \"bancoDebito\": 237,\r\n    \"agenciaDebito\": 2856,\r\n    \"digitoAgencia\": 0,\r\n    \"contaDebito\": 50035,\r\n    \"digitoConta\" : 0,\r\n    \"formaPagamento\": 0,\r\n    \"numeroProtocolo\": 0,\r\n    \"idTransacao\": 0,\r\n    \"dataPagamento\": 20250521,\r\n    \"valorPagamento\": 5000.01\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-alterar-agendamento/alteracao/executar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-alterar-agendamento",
+										"alteracao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Pagamentos Devolvidos - Sucesso",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"versaoLayout\": 1,\r\n  \"bancoDebito\": 237,\r\n  \"agenciaDebito\": 1234,\r\n  \"contaDebito\": 50035,\r\n  \"dataDevolucaoInicial\": \"20190704\",\r\n  \"dataDevolucaoFinal\": \"20220615\",\r\n  \"restartEntrada\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-lista-pagamento-devolvido/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-lista-pagamento-devolvido",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Pagamentos Devolvidos - Erro Data inválida",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDebito\": 3987,\r\n  \"dataDevolucaoFinal\": \"\",\r\n  \"bancoDebito\": 237,\r\n  \"dataDevolucaoInicial\": \"\",\r\n  \"versaoLayout\": 1,\r\n  \"restartEntrada\": \"\",\r\n  \"contaDebito\": 12395\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-lista-pagamento-devolvido/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-lista-pagamento-devolvido",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Pagamentos Devolvidos - Erro Sem dados para consulta",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n   \"versaoLayout\": 1,\r\n   \"bancoDebito\": 237,\r\n   \"agenciaDebito\": 3987,\r\n   \"contaDebito\": 12395,\r\n   \"dataDevolucaoInicial\": \"20250710\",\r\n   \"dataDevolucaoFinal\": \"20250715\",\r\n   \"restartEntrada\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-lista-pagamento-devolvido/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-lista-pagamento-devolvido",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Pagamentos Devolvidos - Erro de Restart",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": " \r\n{\r\n   \"versaoLayout\": 1,\r\n   \"bancoDebito\": 237,\r\n   \"agenciaDebito\": 3987,\r\n   \"contaDebito\": 12395,\r\n   \"dataDevolucaoInicial\": \"20240110\",\r\n   \"dataDevolucaoFinal\": \"20250715\",\r\n   \"restartEntrada\": \"1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/boleto/pagamento-cobranca/v1/cobranca-lista-pagamento-devolvido/listar",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-lista-pagamento-devolvido",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "PRODUÇÃO",
+			"item": [
+				{
+					"name": "Token",
+					"item": [
+						{
+							"name": "Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"pm.globals.set(\"access_token\", jsonData.access_token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "grant_type",
+											"value": "client_credentials",
+											"type": "text"
+										},
+										{
+											"key": "client_id",
+											"value": "{{ClientID_PRD}}",
+											"type": "text"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{ClientSecret_PRD}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/auth/server-mtls/v2/token",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"auth",
+										"server-mtls",
+										"v2",
+										"token"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cobrança - Pagamento de boleto",
+					"item": [
+						{
+							"name": "Consulta de Parâmetros e Limites de Pagamento de Boletos de Cobrança",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"agenciaCliente\": \"12345\",\n  \"digitoAgencia\": \"1\",\n  \"digitoConta\": \"9\",\n  \"contaCliente\": \"1234567\",\n  \"bancoCliente\": \"237\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-parametros-pgto/executar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-parametros-pgto",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Validar Dados do Titulo - Bradesco e/ou Outros Bancos",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"agenciaDeb\": 0,\n  \"bancoTitulo\": 0,\n  \"dadosEntrada\": \"000000000023795106800000011112856090029995343202226520\",\n  \"tipoEntrada\": 1,\n  \"contaDeb\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-valida-titulo-pagamento/validaTituloPagamento",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-valida-titulo-pagamento",
+										"validaTituloPagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pré Efetivação de Pagamento",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 2,\r\n  \"dataPagamento\": 20250227,\r\n  \"digitoAgencia\": 0,\r\n  \"formaCaptura\": 1,\r\n  \"valorTitulo\": 11.21,\r\n  \"bancoDebito\": 237,\r\n  \"numeroAutenticacao\": \"\",\r\n  \"agencia\": 2856,\r\n  \"contaDebito\": 464,\r\n  \"agenciaDebito\": 448,\r\n  \"dataMovimento\": 20250227,\r\n  \"dataVencimento\": 20261231,\r\n  \"digitoConta\": \"2\",\r\n  \"horaTransacao\": 143500,\r\n  \"linhaExtrato\": \"1234567890123456789012345678901234567890\",\r\n  \"numeroCtrlCip\": \"0\",\r\n  \"codigoBarras\": \"23797100500000011213861090097002841600410000\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-pre-efetivacao/pre-efetivacao-pagamento",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pre-efetivacao",
+										"pre-efetivacao-pagamento"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Efetivação de Pagamento",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 2,\r\n  \"tipoIntermediador\": \"\",\r\n  \"dataPagamento\": 20250507,\r\n  \"digitoAgencia\": 0,\r\n  \"formaCaptura\": 2,\r\n  \"valorTitulo\": 348974,\r\n  \"indicadorFuncao\": \"1\",\r\n  \"bancoDebito\": 237,\r\n  \"numeroAutenticacao\": \"\",\r\n  \"cnpjCpfPtdor\": 123456789,\r\n  \"contaDebito\": 50035,\r\n  \"transactionId\": 22,\r\n  \"agenciaDebito\": 2856,\r\n  \"ctrlCnpjPtdor\": 82,\r\n  \"dataMovimento\": 20250507,\r\n  \"dataVencimento\": 20261231,\r\n  \"digitoConta\": \"0\",\r\n  \"horaTransacao\": 93104,\r\n  \"linhaExtrato\": \"teste pago api\",\r\n  \"numeroCtrlCip\": \"\",\r\n  \"codigoBarras\": \"23791131100000001002856095127000025102226520\",\r\n  \"filialCnpjPtdor\": 0,\r\n  \"codigoAgencia\": 2856\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-efetivacao/solicitacao/executar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-efetivacao",
+										"solicitacao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de pagamento Especifico",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"numeroBanco\": \"237\",\r\n  \"dataPagamento\": \"20250313\",\r\n  \"numeroProtocolo\": \"1\",\r\n  \"numeroConta\": \"1234567\",\r\n  \"versaoLayout\": \"1\",\r\n  \"numeroAgencia\": \"448\",\r\n  \"transactionId\": \"857496259\"\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-pagamento-consulta/consulta-pagamento-especifico",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-pagamento-consulta",
+										"consulta-pagamento-especifico"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar agendamentos e pagamentos de boletos",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"bancoDaContaDebito\": 237,\r\n  \"agenciaDaContaDebito\": 3995,\r\n  \"contaCorrenteDebito\": 75557,\r\n  \"dataInicial\": \"20250125\",\r\n  \"restartEntrada\": \"\",\r\n  \"versaoLayout\": 1,\r\n  \"dataFinal\": \"20250225\",\r\n  \"situacaoPagamento\": 1\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-agendamentos-pgto/listar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-agendamentos-pgto",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Exclusão de agendamento",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDebito\": 2856,\r\n  \"digitoAgencia\": 0,\r\n  \"numeroProtocolo\": 821,\r\n  \"idTransacao\": 0,\r\n  \"digitoConta\": \"0\",\r\n  \"bancoDebito\": 237,\r\n  \"versao\": 2,\r\n  \"contaDebito\": 50035\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-excluir-agendamento/exclusao/executar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-excluir-agendamento",
+										"exclusao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Alteração do Agendamento de Pagamento",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"formaPagamento\": 0,\r\n  \"agenciaDebito\": 2856,\r\n  \"dataPagamento\": 20250521,\r\n  \"digitoAgencia\": 0,\r\n  \"numeroProtocolo\": 821,\r\n  \"idTransacao\": 0,\r\n  \"digitoConta\": \"0\",\r\n  \"bancoDebito\": 237,\r\n  \"versao\": 2,\r\n  \"contaDebito\": 50035,\r\n  \"valorPagamento\": 5000\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-alterar-agendamento/alteracao/executar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-alterar-agendamento",
+										"alteracao",
+										"executar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Pagamentos Devolvidos",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"agenciaDebito\": 1234,\r\n  \"dataDevolucaoFinal\": \"20220615\",\r\n  \"bancoDebito\": 237,\r\n  \"dataDevolucaoInicial\": \"20190704\",\r\n  \"versaoLayout\": 1,\r\n  \"restartEntrada\": \"\",\r\n  \"contaDebito\": 12345\r\n}"
+								},
+								"url": {
+									"raw": "https://openapi.bradesco.com.br/boleto/pagamento-cobranca/v1/cobranca-lista-pagamento-devolvido/listar",
+									"protocol": "https",
+									"host": [
+										"openapi",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"boleto",
+										"pagamento-cobranca",
+										"v1",
+										"cobranca-lista-pagamento-devolvido",
+										"listar"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
