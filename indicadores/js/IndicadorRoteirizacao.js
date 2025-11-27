@@ -1,5 +1,5 @@
 const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick } = Vue;
-const { createVuetify } = vuetify;
+const { createVuetify } = Vuetify;
 const { pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
