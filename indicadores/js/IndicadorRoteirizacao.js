@@ -1,5 +1,6 @@
 const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick } = Vue;
-const { createVuetify } = Vuetify;
+const { createVuetify } = vuetify;
+const { pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
 });
@@ -37,7 +38,7 @@ const app = createApp({
             drawer.value = !drawer.value;
         }
         function initOpcoesRota(objetoOpcoesRota) {
-            const enderecoDefault = enderecosEmpresa.value[0].endereco;
+            const enderecoDefault = enderecosEmpresaRef.value[0].endereco;
             if (objetoOpcoesRota != undefined && objetoOpcoesRota != null) {
                 opcoesRota.evitarPedagios = objetoOpcoesRota.evitarPedagios;
                 opcoesRota.evitarRodovias = objetoOpcoesRota.evitarRodovias;
@@ -72,7 +73,7 @@ const app = createApp({
             dialogState.visivel = false;
         };
         async function initMap() {
-            const enderecoSaida = enderecosEmpresa.value.find(item => item.endereco === opcoesRota.pontoSaida);
+            const enderecoSaida = enderecosEmpresaRef.value.find(item => item.endereco === opcoesRota.pontoSaida);
             let lat = enderecoSaida.lat;
             let lng = enderecoSaida.lng;
             if (!mapDiv.value) {
@@ -116,8 +117,7 @@ const app = createApp({
                 .filter(item => 
                     !item.possivelSaida && 
                     item.endereco !== opcoesRota.pontoDestino &&
-                    item.lat != "0" && 
-                    item.lng != "0"
+                    item.lat != "0" && item.lng != "0"
                 )
                 .map(endereco => ({
                     location: endereco.lat.replace(",", ".") + "," + endereco.lng.replace(",", "."),
@@ -195,27 +195,11 @@ const app = createApp({
                 endereco.lat != "0" && endereco.lng != "0"
             );
         });
-        const pedidos = ref([
-            {
-                pedido: {
-                    endereco: "NOME DA RUA 449171, 449171, *****, MAETINGA, BA, 46255-000",
-                    lat: "-14,6623991",
-                    lng: "-41,4918431",
-                    sequenciaEntrega: 0,
-                }
-            },
-            {
-                pedido: {
-                    endereco: "NOME DA RUA 449171, 449171, *****, MAETINGA, BA, 46255-000",
-                    lat: "-14,6623991",
-                    lng: "-41,4918431",
-                    sequenciaEntrega: 1,
-                }
-            },
-        ]);
+        const pedidosRef = ref(pedidos);
+        const enderecosEmpresaRef = ref(enderecosEmpresa);
         const pedidosUnicos = computed(() => {
             const vistos = new Set();
-            return pedidos.value.filter(item => {
+            return pedidosRef.value.filter(item => {
                 const chave = `${item.pedido.lat}-${item.pedido.lng}`;
                 if (vistos.has(chave)) {
                     return false;
@@ -223,22 +207,6 @@ const app = createApp({
                 vistos.add(chave);
                 return true;
             }).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
-        });
-        const enderecosEmpresa = computed(() => {
-            return [
-                {
-                    possivelSaida: true,
-                    endereco: "NOME DA RUA 243248, 243248, UBA, MG, 36502-110",
-                    lat: "-21,1264",
-                    lng: "-42,9156",
-                },
-                {
-                    possivelSaida: true,
-                    endereco: "NOME DA RUA 9523, 9523, UBA, MG, 36500-970",
-                    lat: "-21,120123",
-                    lng: "-42,9426188",
-                },
-            ]
         });
         const enderecosDocumentos = computed(() => {
             return pedidosUnicos.value.map(pedidoObj => ({
@@ -250,7 +218,7 @@ const app = createApp({
             }));
         });
         const enderecosDestinos = computed(() => {
-            return enderecosEmpresa.value.concat(enderecosDocumentos.value);
+            return enderecosEmpresaRef.value.concat(enderecosDocumentos.value);
         });
         function setParametrosStorage(chave, dataObject) {
             try {
@@ -306,8 +274,8 @@ const app = createApp({
             toggleDrawer,
             dialogState,
             fecharDialog,
-            pedidos,
-            enderecosEmpresa,
+            pedidosRef,
+            enderecosEmpresaRef,
             enderecosDestinos,
         }
     }
