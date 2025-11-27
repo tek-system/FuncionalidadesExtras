@@ -1,0 +1,1408 @@
+{
+	"info": {
+		"_postman_id": "adc0c787-78bd-4c7d-bfbe-64c74d57a867",
+		"name": "Pix - transferências",
+		"description": "Coleção com chamadas para todos os serviços da api pix\n\n### Antes de qualquer request realizar chamada do gseg-srv-login.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30365133"
+	},
+	"item": [
+		{
+			"name": "SANDBOX",
+			"item": [
+				{
+					"name": "Token",
+					"item": [
+						{
+							"name": "Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody); \r",
+											"postman.setGlobalVariable(\"access_token_sandbox\", jsonData.access_token);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=d818a89f21390c375e9b9c8b3515b782"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "grant_type",
+											"value": "client_credentials",
+											"type": "text"
+										},
+										{
+											"key": "client_id",
+											"value": "{{ClientID_SDX}}",
+											"type": "text"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{ClientSecret_SDX}}",
+											"type": "text"
+										},
+										{
+											"key": "scope",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/auth/server/oauth/token",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"auth",
+										"server",
+										"oauth",
+										"token"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Pix Transferência - Transferir",
+					"item": [
+						{
+							"name": "Solicitar Transferência Pix [AG+CC] - Sucesso",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"Teste00000000000002\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3861\",\n        \"conta\": \"41000\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"51863397000186\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3995\",\n        \"banco\": \"237\",\n        \"ispb\": \"60746948\",\n        \"conta\": \"3851\",\n        \"digitoConta\": \"2\",\n        \"tipoConta\": \"CONTA_CORRENTE\",\n        \"nomeFavorecido\": \"EMPRESA PIX\"\n    },\n    \"valor\": \"0.01\",\n    \"descricao\": \"Transf válida\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [Chave EVP] - Sucesso",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"b3bdd4e4-7cdc-41c1-bd70-7842d987d79f\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Paula Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"3835\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [Telefone] - Sucesso",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"TELEFONE\",\n        \"chavePix\": \"+5511912345678\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Marcos Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"3835678\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [E-mail] - Sucesso",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EMAIL\",\n        \"chavePix\": \"teste@hotmail.com\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Debora Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"1234.89\",\n    \"idtransacao\": \"383556782\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [CPJCNPJ] - Sucesso",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"CPFCNPJ\",\n        \"chavePix\": \"68542653101838\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Debora Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"1234.89\",\n    \"idtransacao\": \"383556782\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Dados Pagador - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EMAIL\",\n        \"chavePix\": \"teste@bradesco.com.vr\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Debora Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"1234.89\",\n    \"idtransacao\": \"383556782\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - IDtransacao - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"Teste00000000000002\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3861\",\n        \"conta\": \"41000\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"51863397000186\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3995\",\n        \"banco\": \"237\",\n        \"ispb\": \"60746948\",\n        \"conta\": \"3851\",\n        \"digitoConta\": \"2\",\n        \"tipoConta\": \"CONTA_CORRENTE\",\n        \"nomeFavorecido\": \"EMPRESA PIX\"\n    },\n    \"valor\": \"0.02\",\n    \"descricao\": \"Transf válida\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Dados Favorecido - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"Teste00000000000003\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3861\",\n        \"conta\": \"41000\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"51863397000186\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"2856\",\n        \"banco\": \"237\",\n        \"ispb\": \"60746948\",\n        \"conta\": \"3851\",\n        \"digitoConta\": \"2\",\n        \"tipoConta\": \"CONTA_CORRENTE\",\n        \"nomeFavorecido\": \"EMPRESA PIX\"\n    },\n    \"valor\": \"0.02\",\n    \"descricao\": \"Transf válida\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Descricao - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"Teste00000000000052\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3861\",\n        \"conta\": \"41000\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"51863397000186\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3995\",\n        \"banco\": \"237\",\n        \"ispb\": \"60746948\",\n        \"conta\": \"3851\",\n        \"digitoConta\": \"2\",\n        \"tipoConta\": \"CONTA_CORRENTE\",\n        \"nomeFavorecido\": \"EMPRESA PIX\"\n    },\n    \"valor\": \"0.04\",\n    \"descricao\": \"Transf válidaaaaaaaaaaaaaaaaaaaaaaa\"\n}\n/",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Conta sem saldo - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"Teste00000000000056\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3861\",\n        \"conta\": \"41000\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"51863397000186\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"3995\",\n        \"banco\": \"237\",\n        \"ispb\": \"60746948\",\n        \"conta\": \"3851\",\n        \"digitoConta\": \"2\",\n        \"tipoConta\": \"CONTA_CORRENTE\",\n        \"nomeFavorecido\": \"EMPRESA PIX\"\n    },\n    \"valor\": \"1500000.00\",\n    \"descricao\": \"Transf válida\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - IDtransacao - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"b3bdd4e4-7cdc-41c1-bd70-7842d987d79f\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Paula Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"\"\n}/",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Chave EVP - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"68542653101838\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Paula Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"teste101\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - Dados Favorecido sem ISBP - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"b3bdd4e4-7cdc-41c1-bd70-7842d987d79f\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Paula Albuquerque\",\n        \"ispb\": \"\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"teste101\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix - ID transação - erro",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"b3bdd4e4-7cdc-41c1-bd70-7842d987d79f\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Marcos Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"100.89\",\n    \"idtransacao\": \"3835\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Pix Transferência - Consultar",
+					"item": [
+						{
+							"name": "Consultar Transferência Pix  - Sucesso",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/consulta/transferencia/Teste00000000000054/E60746948202411082038L3861Uje9W4",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"consulta",
+										"transferencia",
+										"Teste00000000000054",
+										"E60746948202411082038L3861Uje9W4"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consultar Transferência Pix - E2E - erro",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/consulta/transferencia/Teste0000000000005/E60746948202411082038L3861Uje9W",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"consulta",
+										"transferencia",
+										"Teste0000000000005",
+										"E60746948202411082038L3861Uje9W"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consultar Transferência Pix - IDtransacao - erro",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/consulta/transferencia/Teste12345/E60746948202511082038L3861Uje9M",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"consulta",
+										"transferencia",
+										"Teste12345",
+										"E60746948202511082038L3861Uje9M"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consultar Transferência Pix - Pgto rejeitado - erro",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/consulta/transferencia/3835678/E60746948202411081808L5320vxg27Y",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"consulta",
+										"transferencia",
+										"3835678",
+										"E60746948202411081808L5320vxg27Y"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "PRODUÇÃO",
+			"item": [
+				{
+					"name": "Token",
+					"item": [
+						{
+							"name": "Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody); \r",
+											"postman.setGlobalVariable(\"access_token\", jsonData.access_token);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=d818a89f21390c375e9b9c8b3515b782"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "grant_type",
+											"value": "client_credentials",
+											"type": "text"
+										},
+										{
+											"key": "client_id",
+											"value": "{{ClientID_PRD}}",
+											"type": "text"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{ClientSecret_PRD}}",
+											"type": "text"
+										},
+										{
+											"key": "scope",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/auth/server/oauth/token",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"auth",
+										"server",
+										"oauth",
+										"token"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Pix Transferência - Transferir",
+					"item": [
+						{
+							"name": "Solicitar Transferência Pix [AG+CC]",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"idtransacao\": \"{id_transacao}\",\n    \"pagador\": {\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"{agencia}\",\n        \"conta\": \"{conta}\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"{cnpj_recebedor}\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"{agencia favorecido}\",\n        \"banco\": \"{banco}\",\n        \"ispb\": \"{numero_ISPB_Banco_favorecido}\",\n        \"conta\": \"{conta_favorecido}\",\n        \"digitoConta\": \"{digito_conta}\",\n        \"tipoConta\": \"{Tipo_conta}\",\n        \"nomeFavorecido\": \"{Nome_do_favorecido}\"\n    },\n    \"valor\": \"{valor}\",\n    \"descricao\": \"{descrição}\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [Chave EVP]",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EVP\",\n        \"chavePix\": \"{informar_chave_evp}\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"{cnpj_recebedor}\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"{agencia favorecido}\",\n        \"banco\": \"{banco}\",\n        \"ispb\": \"{numero_ISPB_Banco_favorecido}\",\n        \"conta\": \"{conta_favorecido}\",\n        \"digitoConta\": \"{digito_conta}\",\n        \"tipoConta\": \"{Tipo_conta}\",\n        \"nomeFavorecido\": \"{Nome_do_favorecido}\"\n    },\n    \"valor\": \"{valor}\",\n    \"idtransacao\": \"{id_transação}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [Telefone]",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"TELEFONE\",\n        \"chavePix\": \"{informar numero de telefone +55DDD}\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"{cnpj_recebedor}\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"{agencia favorecido}\",\n        \"banco\": \"{banco}\",\n        \"ispb\": \"{numero_ISPB_Banco_favorecido}\",\n        \"conta\": \"{conta_favorecido}\",\n        \"digitoConta\": \"{digito_conta}\",\n        \"tipoConta\": \"{Tipo_conta}\",\n        \"nomeFavorecido\": \"{Nome_do_favorecido}\"\n    },\n    \"valor\": \"{valor}\",\n    \"idtransacao\": \"{id_transação}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [E-mail]",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"EMAIL\",\n        \"chavePix\": \"{informar_e-mail}\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"{cnpj_recebedor}\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"agencia\": \"{agencia favorecido}\",\n        \"banco\": \"{banco}\",\n        \"ispb\": \"{numero_ISPB_Banco_favorecido}\",\n        \"conta\": \"{conta_favorecido}\",\n        \"digitoConta\": \"{digito_conta}\",\n        \"tipoConta\": \"{Tipo_conta}\",\n        \"nomeFavorecido\": \"{Nome_do_favorecido}\"\n    },\n    \"valor\": \"{valor}\",\n    \"idtransacao\": \"{id_transação}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Solicitar Transferência Pix [CPJCNPJ]",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_sandbox}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pagador\": {\n        \"tipoChave\": \"CPFCNPJ\",\n        \"chavePix\": \"68542653101838\"\n    },\n    \"recebedor\": {\n        \"cpfCnpj\": \"36955154818\",\n        \"tipoChave\": \"AGENCIACONTA\",\n        \"nomeFavorecido\": \"Debora Albuquerque\",\n        \"ispb\": \"31872495\",\n        \"agencia\": \"1\",\n        \"conta\": \"15659061\",\n        \"digitoConta\": \"1\",\n        \"tipoConta\": \"CONTA_CORRENTE\"\n    },\n    \"valor\": \"1234.89\",\n    \"idtransacao\": \"383556782\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://openapisandbox.prebanco.com.br/v1/spi/solicitar-transferencia/*",
+									"protocol": "https",
+									"host": [
+										"openapisandbox",
+										"prebanco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"solicitar-transferencia",
+										"*"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Pix Transferência - Consultar",
+					"item": [
+						{
+							"name": "Consultar Transferência Pix  - Sucesso",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Cookie",
+										"value": "f0ee00a3c6086fde9072d03fe06f4365=480baf5dca48072c333a1971b2c5e08d; ak_bmsc=227B4580FAC6A4D909B3A02A0B6E2B13~000000000000000000000000000000~YAAQzWAXApaAzZOUAQAAurYBrhrXqhHN/WTbs4uzEjzzUnhUXPzWKBPrb7hdiCNOBa1JemNKI59RNJcL4OOQEcpS+nsouKQV568iGKQpGuX8SK/hdPtEcvMw8iBrEt8atFSd4oNvU4iY8FoGzlONTlnDssbMgp5KQT3nQOTXDcsrMxmXjylfkKtVkVvqIqg4bcgd9Mcss6TM3KPbF0SWBntevlo9hL5VdcGCcS2ibB8ensAWSlekx2V7tjXdwcf26AseQaurKH3azEXgU2x1ZmRxGxBYc3fVEWsniWX/3HlwIxlX1Y973nv0qFKCqq2r+HYbggIfZEfGOhWPJOZCV4hFM4ZCSv8dcLDMt+VeGNU9; f0ee00a3c6086fde9072d03fe06f4365=8a66491aec8d3880f69c4de765cb5f83"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://qrpix.bradesco.com.br/v1/spi/consulta/transferencia/{informar_id_transação}/{informar_e2eid}",
+									"protocol": "https",
+									"host": [
+										"qrpix",
+										"bradesco",
+										"com",
+										"br"
+									],
+									"path": [
+										"v1",
+										"spi",
+										"consulta",
+										"transferencia",
+										"{informar_id_transação}",
+										"{informar_e2eid}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host-pj-tu",
+			"value": "pjl2.pj.cloud.corpd.bradesco.com.br"
+		},
+		{
+			"key": "host-pf-tu",
+			"value": "pfl2.pf.cloud.corpd.bradesco.com.br"
+		},
+		{
+			"key": "host-corp-tu",
+			"value": "corp.corp.cloud.corpd.bradesco.com.br"
+		},
+		{
+			"key": "url-was",
+			"value": "http://192.168.249.91:9036"
+		},
+		{
+			"key": "url-localhost",
+			"value": "localhost:9080"
+		},
+		{
+			"key": "x-stateless-open",
+			"value": "eyJwZXJpZmVyaWNvIjoiTE9DQUwiLCJpZGlvbWEiOjEsImNhbmFsIjo2NiwiZW1wcmVzYSI6MjM3LCJ1dWlkIjoiMDFmOWE1NmYtMjFiOS00M2RiLWJkOTktMTViODhjZjcwZjQyIiwiZGVwZW5kZW5jaWEiOjF9"
+		},
+		{
+			"key": "x-stateless-closed",
+			"value": "eyJmcndrIjp7InRpY2tldCI6IkYwQjc1QUQ2RkMyRjcwMDAiLCJpZHNlc3NhbyI6IjAwMDNDMDc0QjA3ODRGM1gwMzE3MDJGRUNGNDIwRTVFIiwidXN1YXJpbyI6IjAwNjY1MDAwMDAwMDUxMTYwOTAxIiwidGlwb1VzdWFyaW8iOiJUUlVTVCJ9fQ=="
+		},
+		{
+			"key": "url-ocp-pf-tu",
+			"value": ""
+		},
+		{
+			"key": "url-ocp-pj-tu",
+			"value": ""
+		},
+		{
+			"key": "url-pf-tu",
+			"value": "https://192.168.246.214"
+		},
+		{
+			"key": "url-pj-tu",
+			"value": "https://192.168.248.61"
+		},
+		{
+			"key": "x-stateless-open-pix",
+			"value": ""
+		},
+		{
+			"key": "x-stateless-closed-pix",
+			"value": ""
+		}
+	]
+}

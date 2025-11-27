@@ -1,0 +1,90 @@
+/* Desenvolvido por Denis - Compartilhado entre ERP e Comercial */
+
+html, body {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  background-color: white;
+}
+.tabela {  
+  width: 100%;
+  display: table;
+  font-family: Trebuchet MS;
+  font-size: 0.8em;  
+  margin: 0 auto;
+  border-spacing: 1px;    
+}
+.linha {
+  display: table-row;
+  width: 100%;
+  height: 35px;
+}  
+.linha_par {
+  background: rgb(220, 220, 220);      /* Não funciona no TWebBrowser do Delphi =>  rgba(128, 128, 128, 0.16) */  
+}
+.linha_impar {                         /* Não funciona no TWebBrowser do Delphi => .linha:nth-child(2n+1) */
+  background: rgb(240, 240, 240);          
+}        
+.linha:hover {
+  background-color: rgb(207, 247, 209); 
+}
+
+.linha_Ultrapassada {                        
+  background-color: rgb(300, 80, 100)      
+} 
+
+.linha_Intermediaria {                         
+  background-color: rgb(250, 190, 110)
+} 
+.titulo_colunas {                      /* Não funciona no TWebBrowser do Delphi => .linha:first-child */ 
+  display: table-row;
+  height: 35px;
+  width: 100%;
+  background-color: rgb(217, 217, 253);  
+  font-weight: bold;
+}
+.coluna { 
+  display: table-cell;
+  vertical-align: middle;  
+/*  padding-left: 1ch; */
+  padding: 1ch; 
+}
+.grupo {
+  text-align: left;    
+  vertical-align: middle;
+  height: 25px;
+  width:100%;   
+  border-radius: 4px;
+  box-shadow: inset 0px 0px 1px 1px #000;     
+/*  display: inherit; */
+}
+
+/* tratamento para campo string */
+.tipocampo-1 {
+  text-align: left;
+}
+/* tratamento para campo inteiro */
+.tipocampo-3 {
+  text-align: right;
+}
+/* tratamento para campo float, currency */
+.tipocampo-6, .tipocampo-7, .tipocampo-37 {
+  text-align: right;
+}
+/* tratamento para campo memo */
+.tipocampo-16 {
+  text-align: left;
+}
+/* tratamento para campo data/hora */
+.tipocampo-36 {
+  text-align: center;
+}
+
+.tracejado { 
+  border-top: dotted 1px;
+  height: 1px;     
+}
+.negativo {
+  color: red;
+}
