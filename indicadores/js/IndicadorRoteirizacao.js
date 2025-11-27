@@ -73,9 +73,6 @@ const app = createApp({
             dialogState.visivel = false;
         };
         async function initMap() {
-            if (pedidosRef.value.lenght <= 0) {
-                throw new Error("Nenhum ponto de entrega identificado!");
-            }
             const enderecoSaida = enderecosEmpresaRef.value.find(item => item.endereco === opcoesRota.pontoSaida);
             let lat = enderecoSaida.lat;
             let lng = enderecoSaida.lng;
@@ -104,7 +101,7 @@ const app = createApp({
             directionsRenderer.value.setMap(map.value);                    
             await calcularRota();
         };
-        function montarRequestRota() {
+        async function montarRequestRota() {
             if (typeof google === "undefined" || typeof google.maps === "undefined") {
                 console.warn("A API do Google Maps ainda não foi carregada.");
                 return null;
@@ -139,16 +136,8 @@ const app = createApp({
             };
             return request;
         }
-        function setMetricasResultantesDaRota(legs) {
-            const distanceMeters = legs.reduce((total, leg) => total + leg.distance.value, 0);
-            const distanceKm = (distanceMeters / 1000).toFixed(2);
-            metricasResultantesDaRota.distanciaTotalKm = distanceKm;
-            const durationSeconds = legs.reduce((total, leg) => total + leg.duration.value, 0);
-            const durationMinutes = Math.ceil(durationSeconds / 60);
-            const durationHours = Math.floor(durationMinutes / 60);
-            metricasResultantesDaRota.duracaoTotalHoras = `${durationHours} Horas e ${durationMinutes % 60} Minutos`;
-        }
-        async function desenharRota(request) {
+        async function desenharRota() {
+            const request = await montarRequestRota();
             if (!directionsRenderer.value || !directionsService.value) {
                 await nextTick();
                 directionsService.value = new google.maps.DirectionsService();
@@ -176,12 +165,9 @@ const app = createApp({
         async function calcularRota() {
             try {
                 loading.value = true;
-                const request = montarRequestRota();
-                if (!request) {
-                    loading.value = false;
-                    return; 
-                }
-                await desenharRota(request);
+                if (pedidosRef.value.length === 0)
+                    throw new Error("Nenhum ponto de entrega identificado!");
+                await desenharRota();
             } catch (error) {
                 console.error("Ocorreu um erro:", error);
                 abrirDialog(
@@ -192,6 +178,15 @@ const app = createApp({
                 );
                 loading.value = false;
             }
+        }
+        function setMetricasResultantesDaRota(legs) {
+            const distanceMeters = legs.reduce((total, leg) => total + leg.distance.value, 0);
+            const distanceKm = (distanceMeters / 1000).toFixed(2);
+            metricasResultantesDaRota.distanciaTotalKm = distanceKm;
+            const durationSeconds = legs.reduce((total, leg) => total + leg.duration.value, 0);
+            const durationMinutes = Math.ceil(durationSeconds / 60);
+            const durationHours = Math.floor(durationMinutes / 60);
+            metricasResultantesDaRota.duracaoTotalHoras = `${durationHours} Horas e ${durationMinutes % 60} Minutos`;
         }
         const temCoordenadas = computed(() => {
             return enderecosDestinos.value.some(endereco => 
