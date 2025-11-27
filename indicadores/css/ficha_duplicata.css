@@ -1,0 +1,68 @@
+html, body {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-family: Trebuchet MS;
+  font-size: 0.9em;  
+}
+body{
+  background-color: aliceblue
+}
+.titulo {
+  background-color: rgba(121, 119, 119, 0.21);
+  font-weight: bold;
+  line-height: 35px;
+  text-align: center;
+  vertical-align: middle;
+}
+.imgQualificacao{
+  float: left;
+  height: 22px;
+  width: 22px;
+  margin-left: 5px;
+  margin-top: 5px;  
+}
+.receber {
+  color: blue;
+}
+.pagar {
+  color: red;  
+}
+.label {
+  font-weight: bold;
+}
+.data {
+  font-weight: normal;
+  text-align: center;
+}
+.valor {
+  font-weight: normal;
+  /*text-align: right;*/
+}
+.negativo {
+  color: red;
+}
+.div_grupos {
+  padding: 5px;
+  border: dotted 1px;     
+  border-bottom-width: 0px;
+}
+.div_grupos:hover {
+  background-color: rgb(207, 247, 209); 
+}
+.tracejado { 
+  border-top: dotted 1px;
+  height: 1px;     
+}
+table {
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px;
+  border-style: dotted;
+  padding-left: 10px;  
+  padding-right: 10px;  
+}
+.centralizado {
+  text-align: center;
+}
