@@ -73,6 +73,9 @@ const app = createApp({
             dialogState.visivel = false;
         };
         async function initMap() {
+            if (pedidosRef.value.lenght <= 0) {
+                throw new Error("Nenhum ponto de entrega identificado!");
+            }
             const enderecoSaida = enderecosEmpresaRef.value.find(item => item.endereco === opcoesRota.pontoSaida);
             let lat = enderecoSaida.lat;
             let lng = enderecoSaida.lng;
