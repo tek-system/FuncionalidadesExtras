@@ -13,7 +13,7 @@ body, .v-application {
     top: 0;
     right: 0;
     z-index: 2000;
-    transition: padding-right 0.3s ease-in-out;
+    transition: margin-right 0.3s ease-in-out;
 }
 
 .fixed-overlay-button .v-col {
