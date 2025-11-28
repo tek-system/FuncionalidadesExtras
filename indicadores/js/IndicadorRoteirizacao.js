@@ -1,4 +1,4 @@
-const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick } = Vue;
+const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick, markRaw } = Vue;
 const { createVuetify } = Vuetify;
 const { pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
 const vuetify = createVuetify({
@@ -11,6 +11,7 @@ const app = createApp({
         const mapDiv = ref(null);
         const directionsService = ref(null);
         const directionsRenderer = ref(null);
+        const markers = ref([]);
         const drawer = ref(false);
         const opcoesRota = reactive({
             pontoSaida: null,
@@ -72,6 +73,13 @@ const app = createApp({
             dialogState.corTexto = "";
             dialogState.visivel = false;
         };
+        function limparMarkers() {
+            markers.value.forEach(marker => {
+                marker.infoWindow.close();   
+                marker.setMap(null);
+            });
+            markers.value = [];
+        }
         async function initMap() {
             const enderecoSaida = enderecosEmpresaRef.value.find(item => item.endereco === opcoesRota.pontoSaida);
             let lat = enderecoSaida.lat;
@@ -97,10 +105,56 @@ const app = createApp({
             });
             await nextTick();
             directionsService.value = new google.maps.DirectionsService();
-            directionsRenderer.value = new google.maps.DirectionsRenderer();
+            directionsRenderer.value = new google.maps.DirectionsRenderer({ suppressMarkers: true });
             directionsRenderer.value.setMap(map.value);                    
             await calcularRota();
-        };
+        };        
+        async function calcularRota() {
+            
+            try {
+                loading.value = true;
+                if (pedidosRef.value.length === 0)
+                    throw new Error("Nenhum ponto de entrega identificado!");
+                await desenharRota();
+                limparMarkers();
+                adicionarMarkers(map.value);
+            } catch (error) {
+                console.error("Ocorreu um erro:", error);
+                abrirDialog(
+                    "Ocorreu um erro!",
+                    String(error),
+                    "bg-red-darken-4",
+                    "text-red-darken-4"
+                );
+                loading.value = false;
+            }
+        }
+        async function desenharRota() {
+            const request = await montarRequestRota();
+            if (!directionsRenderer.value || !directionsService.value) {
+                await nextTick();
+                directionsService.value = new google.maps.DirectionsService();
+                directionsRenderer.value = new google.maps.DirectionsRenderer();
+                directionsRenderer.value.setMap(map.value);
+            }
+            loading.value = true;
+            try {
+                const renderer = directionsRenderer.value;
+                const result = await directionsService.value.route(request);
+                renderer.setDirections(result);
+                setMetricasResultantesDaRota(result.routes[0].legs);
+            } catch (status) {
+                console.error("Erro ao calcular a rota:", status);
+                abrirDialog(
+                    "Erro na Rota",
+                    `Não foi possível calcular a rota. Status: ${status}`,
+                    "bg-red-darken-4",
+                    "text-red-darken-4"
+                );
+            } finally {
+                loading.value = false;
+            }
+        }
         async function montarRequestRota() {
             if (typeof google === "undefined" || typeof google.maps === "undefined") {
                 console.warn("A API do Google Maps ainda não foi carregada.");
@@ -136,48 +190,64 @@ const app = createApp({
             };
             return request;
         }
-        async function desenharRota() {
-            const request = await montarRequestRota();
-            if (!directionsRenderer.value || !directionsService.value) {
-                await nextTick();
-                directionsService.value = new google.maps.DirectionsService();
-                directionsRenderer.value = new google.maps.DirectionsRenderer();
-                directionsRenderer.value.setMap(map.value);
-            }
-            loading.value = true;
-            try {
-                const renderer = directionsRenderer.value;
-                const result = await directionsService.value.route(request);
-                renderer.setDirections(result);
-                setMetricasResultantesDaRota(result.routes[0].legs);
-            } catch (status) {
-                console.error("Erro ao calcular a rota:", status);
-                abrirDialog(
-                    "Erro na Rota",
-                    `Não foi possível calcular a rota. Status: ${status}`,
-                    "bg-red-darken-4",
-                    "text-red-darken-4"
-                );
-            } finally {
-                loading.value = false;
-            }
-        }
-        async function calcularRota() {
-            try {
-                loading.value = true;
-                if (pedidosRef.value.length === 0)
-                    throw new Error("Nenhum ponto de entrega identificado!");
-                await desenharRota();
-            } catch (error) {
-                console.error("Ocorreu um erro:", error);
-                abrirDialog(
-                    "Ocorreu um erro!",
-                    String(error),
-                    "bg-red-darken-4",
-                    "text-red-darken-4"
-                );
-                loading.value = false;
-            }
+        function adicionarMarkers(map) {
+            const pontosDaRota = enderecosDestinos.value;
+            let openedInfoWindow = null;
+            pontosDaRota.forEach((ponto, index) => {
+                const latLng = {
+                    lat: parseFloat(ponto.lat.replace(",", ".")),
+                    lng: parseFloat(ponto.lng.replace(",", "."))
+                };
+                let infoWindowContent;
+                let title;
+                let isSaidaOrDestino = ponto.endereco === opcoesRota.pontoSaida || ponto.endereco === opcoesRota.pontoDestino;
+                if (isSaidaOrDestino) {
+                    let tipo;
+                    if (ponto.endereco === opcoesRota.pontoSaida && ponto.endereco === opcoesRota.pontoDestino) {
+                        tipo = '<strong>Saída (Origem) e Destino (Final)</strong>';
+                    } else if (ponto.endereco === opcoesRota.pontoSaida) {
+                        tipo = '<strong>Saída (Origem)</strong>';
+                    } else if (ponto.endereco === opcoesRota.pontoDestino) {
+                        tipo = '<strong>Destino (Final)</strong>';
+                    }
+                    title = tipo;
+                    infoWindowContent = `
+                        <div style="font-size: 0.9rem; line-height: 1.3;">
+                            <strong>Ponto #${index + 1}</strong>
+                            <p><span style="font-weight: bold;">Tipo:</span> ${tipo}</p>
+                            <p><span style="font-weight: bold;">Endereço:</span> ${ponto.endereco}</p>
+                        </div>
+                    `;
+                } else if (ponto.sequenciaEntrega) {
+                    title = `Parada ${index + 1}: ${ponto.endereco} <br>Pedido #${ponto.numeroPedido}`;
+                    infoWindowContent = `
+                        <div style="font-size: 0.9rem; line-height: 1.3;">
+                            <strong>Parada #${index + 1} - Entrega </strong>
+                            <p><span style="font-weight: bold;">Sequência:</span> ${ponto.sequenciaEntrega}</p>
+                            <p><span style="font-weight: bold;">Pedido:</span> ${ponto.numeroPedido || 'N/A'}</p>
+                            <p><span style="font-weight: bold;">Cliente:</span> ${ponto.cliente || 'N/A'}</p>
+                            <p><span style="font-weight: bold;">Endereço:</span> ${ponto.endereco}</p>
+                        </div>
+                    `;
+                }
+                const marker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    title: title,
+                });
+                const infoWindow = new google.maps.InfoWindow({
+                    content: infoWindowContent,
+                });
+                marker.addListener("click", () => {
+                    if (openedInfoWindow) {
+                        openedInfoWindow.close();
+                    }
+                    infoWindow.open(map, marker);
+                    openedInfoWindow = infoWindow;
+                });
+                marker.infoWindow = infoWindow;
+                markers.value.push(markRaw(marker));
+            });
         }
         function setMetricasResultantesDaRota(legs) {
             const distanceMeters = legs.reduce((total, leg) => total + leg.distance.value, 0);
@@ -212,12 +282,32 @@ const app = createApp({
                 endereco: pedidoObj.pedido.endereco,
                 lat: pedidoObj.pedido.lat,
                 lng: pedidoObj.pedido.lng,
-                sequenciaEntrega: pedidoObj.sequenciaEntrega,
+                sequenciaEntrega: pedidoObj.pedido.sequenciaEntrega,
+                numeroPedido: pedidoObj.pedido.numeroPedido,
+                cliente: pedidoObj.pedido.cliente,
             }));
         });
         const enderecosDestinos = computed(() => {
-            return enderecosEmpresaRef.value.concat(enderecosDocumentos.value);
+            const enderecosEmpresaIncluidosNaRota = enderecosEmpresaRef.value.filter(item =>
+                item.endereco === opcoesRota.pontoSaida ||
+                item.endereco === opcoesRota.pontoDestino
+            );
+            const todosEnderecosIncluidosNaRota = enderecosEmpresaIncluidosNaRota.concat(enderecosDocumentos.value);
+            const saidaOrigem = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoSaida);
+            const destinoFinal = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoDestino);
+            const waypoints = todosEnderecosIncluidosNaRota.filter(item =>
+                item.endereco !== opcoesRota.pontoSaida &&
+                item.endereco !== opcoesRota.pontoDestino
+            ).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
+            
+            let listaOrdenada = [saidaOrigem].concat(waypoints).concat([destinoFinal]);
+            
+            return listaOrdenada;
         });
+        const enderecosDistintos = computed(() => {
+            const todosEnderecos = enderecosDestinos.value.concat(enderecosEmpresaRef.value);
+            return [...new Set(todosEnderecos.map(item => item.endereco))];
+        })
         function setParametrosStorage(chave, dataObject) {
             try {
                 const jsonString = JSON.stringify(dataObject);
@@ -263,6 +353,7 @@ const app = createApp({
             map,
             mapDiv,
             initMap,
+            markers,
             temCoordenadas,
             opcoesRota,
             saidaNaEmpresa,
@@ -275,6 +366,7 @@ const app = createApp({
             pedidosRef,
             enderecosEmpresaRef,
             enderecosDestinos,
+            enderecosDistintos,
         }
     }
 });
