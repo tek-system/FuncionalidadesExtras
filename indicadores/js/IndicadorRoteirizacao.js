@@ -1,18 +1,24 @@
 const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick, markRaw } = Vue;
 const { createVuetify } = Vuetify;
 const { pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
+
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
 });
+
 const app = createApp({
     setup() {
         const loading = ref(false);
-        const map = ref(null);
-        const mapDiv = ref(null);
-        const directionsService = ref(null);
-        const directionsRenderer = ref(null);
-        const markers = ref([]);
+        const pedidosRef = ref(pedidos);
+        const enderecosEmpresaRef = ref(enderecosEmpresa);
+
         const drawer = ref(false);
+        function toggleDrawer() {
+            drawer.value = !drawer.value;
+        }
+
+        const saidaNaEmpresa = ref(true);
+        const retornoNaEmpresa = ref(true);
         const opcoesRota = reactive({
             pontoSaida: null,
             pontoDestino: null,
@@ -22,22 +28,6 @@ const app = createApp({
             apenasCidades: true,
             otimizarDestinos: true,
         });
-        const saidaNaEmpresa = ref(true);
-        const retornoNaEmpresa = ref(true);
-        const metricasResultantesDaRota = reactive({
-            distanciaTotalKm: 0.0,
-            duracaoTotalHoras: "",
-        });
-        const dialogState = reactive({
-            visivel: false,
-            titulo: "",
-            texto: "",
-            corTitulo: "bg-blue-darken-1",
-            corTexto: "text-blue-darken-1"
-        });
-        function toggleDrawer() {
-            drawer.value = !drawer.value;
-        }
         function initOpcoesRota(objetoOpcoesRota) {
             const enderecoDefault = enderecosEmpresaRef.value[0].endereco;
             if (objetoOpcoesRota != undefined && objetoOpcoesRota != null) {
@@ -59,20 +49,36 @@ const app = createApp({
                 opcoesRota.pontoDestino = enderecoDefault;
             }
         }
+
+        const dialogState = reactive({
+            visivel: false,
+            titulo: "",
+            texto: "",
+            corTitulo: "bg-blue-darken-1",
+            corTexto: "text-blue-darken-1"
+        });
         function abrirDialog(titulo, mensagem, corTitulo, corTexto) {
             dialogState.titulo = String(titulo);
             dialogState.texto = String(mensagem);
             dialogState.corTitulo = String(corTitulo);
             dialogState.corTexto = String(corTexto);
             dialogState.visivel = true;
-        };
+        }
+
         function fecharDialog() {
             dialogState.titulo = "";
             dialogState.texto = "";
             dialogState.corTitulo = "";
             dialogState.corTexto = "";
             dialogState.visivel = false;
-        };
+        }
+
+        const map = ref(null);
+        const mapDiv = ref(null);
+        const directionsService = ref(null);
+        const directionsRenderer = ref(null);
+        const markers = ref([]);
+
         function limparMarkers() {
             markers.value.forEach(marker => {
                 marker.infoWindow.close();   
@@ -80,44 +86,56 @@ const app = createApp({
             });
             markers.value = [];
         }
+
         async function initMap() {
             const enderecoSaida = enderecosEmpresaRef.value.find(item => item.endereco === opcoesRota.pontoSaida);
             let lat = enderecoSaida.lat;
             let lng = enderecoSaida.lng;
+
             if (!mapDiv.value) {
                 abrirDialog("Erro ao carregar o mapa!", "Não foi possível abrir o mapa! Div do mapa não encontrada.", "bg-red-darken-4", "text-red-darken-4")
                 console.error("Div do mapa não encontrada.");
                 return null;
             }
+
             if (typeof google === "undefined" || typeof google.maps === "undefined") {
                 abrirDialog("Erro API Google", "Não foi possível carregar a API do Google Maps. Verifique sua chave e conexão.", "bg-red-darken-4", "text-red-darken-4");
                 console.error("Google Maps API não carregou.");
                 return null;
             }
+
             const localizacao = {
                 lat: parseFloat(lat),
                 lng: parseFloat(lng)
             };
+
             map.value = new google.maps.Map(mapDiv.value, {
                 zoom: 5,
                 center: localizacao,
                 mapTypeId: "roadmap"
             });
+
             await nextTick();
+
             directionsService.value = new google.maps.DirectionsService();
             directionsRenderer.value = new google.maps.DirectionsRenderer({ suppressMarkers: true });
-            directionsRenderer.value.setMap(map.value);                    
+            directionsRenderer.value.setMap(map.value);
+
             await calcularRota();
-        };        
+        }
+
         async function calcularRota() {
-            
             try {
                 loading.value = true;
+
                 if (pedidosRef.value.length === 0)
                     throw new Error("Nenhum ponto de entrega identificado!");
-                await desenharRota();
+
+                const result = await desenharRota();
+                const novaSequencia = result.routes[0].waypoint_order;
+
                 limparMarkers();
-                adicionarMarkers(map.value);
+                adicionarMarkers(map.value, novaSequencia);
             } catch (error) {
                 console.error("Ocorreu um erro:", error);
                 abrirDialog(
@@ -129,20 +147,24 @@ const app = createApp({
                 loading.value = false;
             }
         }
+
         async function desenharRota() {
             const request = await montarRequestRota();
+
             if (!directionsRenderer.value || !directionsService.value) {
                 await nextTick();
                 directionsService.value = new google.maps.DirectionsService();
                 directionsRenderer.value = new google.maps.DirectionsRenderer();
                 directionsRenderer.value.setMap(map.value);
             }
-            loading.value = true;
+
             try {
+                loading.value = true;
                 const renderer = directionsRenderer.value;
                 const result = await directionsService.value.route(request);
                 renderer.setDirections(result);
                 setMetricasResultantesDaRota(result.routes[0].legs);
+                return result;
             } catch (status) {
                 console.error("Erro ao calcular a rota:", status);
                 abrirDialog(
@@ -155,18 +177,23 @@ const app = createApp({
                 loading.value = false;
             }
         }
+
         async function montarRequestRota() {
             if (typeof google === "undefined" || typeof google.maps === "undefined") {
                 console.warn("A API do Google Maps ainda não foi carregada.");
                 return null;
             }
+
             const dadosParaRequest = enderecosDestinos.value;
             const originItem = dadosParaRequest.find(item => item.endereco === opcoesRota.pontoSaida);
             const destinationItem = dadosParaRequest.find(item => item.endereco === opcoesRota.pontoDestino);
+
             if (!originItem || !destinationItem)
                 throw new Error("Não foi possível encontrar as coordenadas para a saída ou destino.");
+
             const originCoords = originItem.lat.replace(",", ".") + "," + originItem.lng.replace(",", ".");
             const destinationCoords = destinationItem.lat.replace(",", ".") + "," + destinationItem.lng.replace(",", ".");
+
             const waypoints = dadosParaRequest
                 .filter(item => 
                     !item.possivelSaida && 
@@ -178,6 +205,7 @@ const app = createApp({
                     stopover: true
                 })
             );
+
             const request = {
                 origin: originCoords,
                 destination: destinationCoords,
@@ -188,21 +216,52 @@ const app = createApp({
                 avoidFerries: opcoesRota.evitarBalsas,
                 travelMode: google.maps.TravelMode.DRIVING
             };
+
             return request;
         }
-        function adicionarMarkers(map) {
+
+        function adicionarMarkers(map, novaSequencia) {
             const pontosDaRota = enderecosDestinos.value;
+            const pontoSaida = pontosDaRota.find(item => item.endereco === opcoesRota.pontoSaida);
+            const pontoDestino = pontosDaRota.find(item => item.endereco === opcoesRota.pontoDestino);
+            let pontosOrdenados = [];
+
+            if (opcoesRota.otimizarDestinos && novaSequencia) {
+                const waypoints = pontosDaRota.filter(item => 
+                    item.endereco !== opcoesRota.pontoSaida &&
+                    item.endereco !== opcoesRota.pontoDestino
+                )
+
+                const waypointsComIndex = waypoints.map((item, index) => ({ item, index }));
+
+                waypointsComIndex.sort((a, b) => {
+                    return novaSequencia.indexOf(a.index) - novaSequencia.indexOf(b.index);
+                });
+
+                const waypointsReordenados = waypointsComIndex.map(obj => obj.item);
+
+                pontosOrdenados = [
+                    ...[pontoSaida],
+                    ...waypointsReordenados,
+                    ...[pontoDestino]
+                ];
+            } else {
+                pontosOrdenados = pontosDaRota;
+            }
             let openedInfoWindow = null;
-            pontosDaRota.forEach((ponto, index) => {
+            pontosOrdenados.forEach((ponto, index) => {
                 const latLng = {
                     lat: parseFloat(ponto.lat.replace(",", ".")),
                     lng: parseFloat(ponto.lng.replace(",", "."))
                 };
+
                 let infoWindowContent;
                 let title;
                 let isSaidaOrDestino = ponto.endereco === opcoesRota.pontoSaida || ponto.endereco === opcoesRota.pontoDestino;
+
                 if (isSaidaOrDestino) {
                     let tipo;
+
                     if (ponto.endereco === opcoesRota.pontoSaida && ponto.endereco === opcoesRota.pontoDestino) {
                         tipo = '<strong>Saída (Origem) e Destino (Final)</strong>';
                     } else if (ponto.endereco === opcoesRota.pontoSaida) {
@@ -210,6 +269,7 @@ const app = createApp({
                     } else if (ponto.endereco === opcoesRota.pontoDestino) {
                         tipo = '<strong>Destino (Final)</strong>';
                     }
+
                     title = tipo;
                     infoWindowContent = `
                         <div style="font-size: 0.9rem; line-height: 1.3;">
@@ -230,41 +290,52 @@ const app = createApp({
                         </div>
                     `;
                 }
+
                 const marker = new google.maps.Marker({
                     position: latLng,
                     map: map,
                     title: title,
                 });
+
                 const infoWindow = new google.maps.InfoWindow({
                     content: infoWindowContent,
                 });
+
                 marker.addListener("click", () => {
-                    if (openedInfoWindow) {
+                    if (openedInfoWindow)
                         openedInfoWindow.close();
-                    }
+
                     infoWindow.open(map, marker);
                     openedInfoWindow = infoWindow;
                 });
+
                 marker.infoWindow = infoWindow;
                 markers.value.push(markRaw(marker));
             });
         }
+
+        const metricasResultantesDaRota = reactive({
+            distanciaTotalKm: 0.0,
+            duracaoTotalHoras: "",
+        });
+
         function setMetricasResultantesDaRota(legs) {
             const distanceMeters = legs.reduce((total, leg) => total + leg.distance.value, 0);
             const distanceKm = (distanceMeters / 1000).toFixed(2);
             metricasResultantesDaRota.distanciaTotalKm = distanceKm;
+
             const durationSeconds = legs.reduce((total, leg) => total + leg.duration.value, 0);
             const durationMinutes = Math.ceil(durationSeconds / 60);
             const durationHours = Math.floor(durationMinutes / 60);
-            metricasResultantesDaRota.duracaoTotalHoras = `${durationHours} Horas e ${durationMinutes % 60} Minutos`;
+            metricasResultantesDaRota.duracaoTotalHoras = `${durationHours} Horas e ${durationMinutes % 60} minutos`;
         }
+
         const temCoordenadas = computed(() => {
             return enderecosDestinos.value.some(endereco => 
                 endereco.lat != "0" && endereco.lng != "0"
             );
         });
-        const pedidosRef = ref(pedidos);
-        const enderecosEmpresaRef = ref(enderecosEmpresa);
+
         const pedidosUnicos = computed(() => {
             const vistos = new Set();
             return pedidosRef.value.filter(item => {
@@ -276,6 +347,7 @@ const app = createApp({
                 return true;
             }).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
         });
+
         const enderecosDocumentos = computed(() => {
             return pedidosUnicos.value.map(pedidoObj => ({
                 possivelSaida: false,
@@ -287,27 +359,31 @@ const app = createApp({
                 cliente: pedidoObj.pedido.cliente,
             }));
         });
+
         const enderecosDestinos = computed(() => {
             const enderecosEmpresaIncluidosNaRota = enderecosEmpresaRef.value.filter(item =>
                 item.endereco === opcoesRota.pontoSaida ||
                 item.endereco === opcoesRota.pontoDestino
             );
+
             const todosEnderecosIncluidosNaRota = enderecosEmpresaIncluidosNaRota.concat(enderecosDocumentos.value);
             const saidaOrigem = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoSaida);
             const destinoFinal = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoDestino);
+
             const waypoints = todosEnderecosIncluidosNaRota.filter(item =>
                 item.endereco !== opcoesRota.pontoSaida &&
                 item.endereco !== opcoesRota.pontoDestino
             ).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
             
             let listaOrdenada = [saidaOrigem].concat(waypoints).concat([destinoFinal]);
-            
             return listaOrdenada;
         });
+
         const enderecosDistintos = computed(() => {
             const todosEnderecos = enderecosDestinos.value.concat(enderecosEmpresaRef.value);
             return [...new Set(todosEnderecos.map(item => item.endereco))];
         })
+
         function setParametrosStorage(chave, dataObject) {
             try {
                 const jsonString = JSON.stringify(dataObject);
@@ -315,7 +391,7 @@ const app = createApp({
             } catch (error) {
                 console.error("❌ Erro ao salvar no localStorage:", error);
             }
-        };
+        }
         watch(opcoesRota, async () => {
                 setParametrosStorage("opcoesRota", opcoesRota);
                 if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
@@ -323,6 +399,7 @@ const app = createApp({
                 }
             }, { deep: true }
         );
+
         function getParametrosStorage(chave) {
             try {
                 const jsonString = localStorage.getItem(chave);
@@ -336,10 +413,11 @@ const app = createApp({
                 initOpcoesRota(null);
                 return null;
             }
-        };
+        }
         onBeforeMount(() => {
             getParametrosStorage("opcoesRota");
         });
+
         onMounted(async () => {
             const aguardarGoogle = setInterval(async () => {
                 if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
@@ -348,6 +426,7 @@ const app = createApp({
                 }
             }, 200);
         });
+
         return {
             loading,
             map,
@@ -370,5 +449,6 @@ const app = createApp({
         }
     }
 });
+
 app.use(vuetify);
 app.mount("#app");
