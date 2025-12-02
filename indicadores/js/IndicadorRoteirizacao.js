@@ -1,6 +1,6 @@
 const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick, markRaw } = Vue;
 const { createVuetify } = Vuetify;
-const { pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
+const { outrosFretes, recolhimentos, pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
 
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
@@ -9,6 +9,8 @@ const vuetify = createVuetify({
 const app = createApp({
     setup() {
         const loading = ref(false);
+        const outrosFretesRef = ref(outrosFretes);
+        const recolhimentosRef = ref(recolhimentos);
         const pedidosRef = ref(pedidos);
         const enderecosEmpresaRef = ref(enderecosEmpresa);
 
@@ -26,8 +28,9 @@ const app = createApp({
             evitarRodovias: false,
             evitarBalsas: false,
             apenasCidades: true,
-            otimizarDestinos: true,
+            otimizarDestinos: true
         });
+
         function initOpcoesRota(objetoOpcoesRota) {
             const enderecoDefault = enderecosEmpresaRef.value[0].endereco;
             if (objetoOpcoesRota != undefined && objetoOpcoesRota != null) {
@@ -57,6 +60,7 @@ const app = createApp({
             corTitulo: "bg-blue-darken-1",
             corTexto: "text-blue-darken-1"
         });
+
         function abrirDialog(titulo, mensagem, corTitulo, corTexto) {
             dialogState.titulo = String(titulo);
             dialogState.texto = String(mensagem);
@@ -221,10 +225,13 @@ const app = createApp({
         }
 
         function adicionarMarkers(map, novaSequencia) {
+            let pontosOrdenados = [];
+            let openedInfoWindow = null;
+            
             const pontosDaRota = enderecosDestinos.value;
+
             const pontoSaida = pontosDaRota.find(item => item.endereco === opcoesRota.pontoSaida);
             const pontoDestino = pontosDaRota.find(item => item.endereco === opcoesRota.pontoDestino);
-            let pontosOrdenados = [];
 
             if (opcoesRota.otimizarDestinos && novaSequencia) {
                 const waypoints = pontosDaRota.filter(item => 
@@ -240,15 +247,11 @@ const app = createApp({
 
                 const waypointsReordenados = waypointsComIndex.map(obj => obj.item);
 
-                pontosOrdenados = [
-                    ...[pontoSaida],
-                    ...waypointsReordenados,
-                    ...[pontoDestino]
-                ];
+                pontosOrdenados = [pontoSaida].concat(waypointsReordenados).concat([pontoDestino]);
             } else {
                 pontosOrdenados = pontosDaRota;
             }
-            let openedInfoWindow = null;
+            
             pontosOrdenados.forEach((ponto, index) => {
                 const latLng = {
                     lat: parseFloat(ponto.lat.replace(",", ".")),
@@ -258,43 +261,44 @@ const app = createApp({
                 let infoWindowContent;
                 let title;
                 let isSaidaOrDestino = ponto.endereco === opcoesRota.pontoSaida || ponto.endereco === opcoesRota.pontoDestino;
-
+                
                 if (isSaidaOrDestino) {
                     let tipo;
-
                     if (ponto.endereco === opcoesRota.pontoSaida && ponto.endereco === opcoesRota.pontoDestino) {
-                        tipo = '<strong>Saída (Origem) e Destino (Final)</strong>';
+                        tipo = "Saída (Origem) e Destino (Final)";
                     } else if (ponto.endereco === opcoesRota.pontoSaida) {
-                        tipo = '<strong>Saída (Origem)</strong>';
+                        tipo = "Saída (Origem)";
                     } else if (ponto.endereco === opcoesRota.pontoDestino) {
-                        tipo = '<strong>Destino (Final)</strong>';
+                        tipo = "Destino (Final)";
                     }
 
                     title = tipo;
                     infoWindowContent = `
                         <div style="font-size: 0.9rem; line-height: 1.3;">
                             <strong>Ponto #${index + 1}</strong>
-                            <p><span style="font-weight: bold;">Tipo:</span> ${tipo}</p>
+                            <p><span style="font-weight: bold;">Tipo:</span><strong> ${tipo}</strong></p>
                             <p><span style="font-weight: bold;">Endereço:</span> ${ponto.endereco}</p>
                         </div>
                     `;
-                } else if (ponto.sequenciaEntrega) {
-                    title = `Parada ${index + 1}: ${ponto.endereco} <br>Pedido #${ponto.numeroPedido}`;
+                } else {
+                    title = `Parada ${index + 1}: ${ponto.endereco} - Pedido #${ponto.numeroPedido}`;
                     infoWindowContent = `
                         <div style="font-size: 0.9rem; line-height: 1.3;">
                             <strong>Parada #${index + 1} - Entrega </strong>
-                            <p><span style="font-weight: bold;">Sequência:</span> ${ponto.sequenciaEntrega}</p>
-                            <p><span style="font-weight: bold;">Pedido:</span> ${ponto.numeroPedido || 'N/A'}</p>
-                            <p><span style="font-weight: bold;">Cliente:</span> ${ponto.cliente || 'N/A'}</p>
+                            <p><span style="font-weight: bold;">Sequência:</span> ${ponto.sequenciaEntrega || "N/A"}</p>
+                            <p><span style="font-weight: bold;">Tipo:</span><strong> ${ponto.tipo}</strong></p>
+                            <p><span style="font-weight: bold;">Pedido:</span> ${ponto.numeroPedido || "N/A"}</p>
+                            <p><span style="font-weight: bold;">Cliente:</span> ${ponto.cliente || "N/A"}</p>
                             <p><span style="font-weight: bold;">Endereço:</span> ${ponto.endereco}</p>
                         </div>
                     `;
-                }
+                } 
 
                 const marker = new google.maps.Marker({
                     position: latLng,
                     map: map,
                     title: title,
+                    icon: `http://maps.google.com/mapfiles/ms/micons/${ponto.icon}-dot.png`
                 });
 
                 const infoWindow = new google.maps.InfoWindow({
@@ -348,16 +352,106 @@ const app = createApp({
             }).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
         });
 
+        const recolhimentosUnicos = computed(() => {
+            const vistos = new Set();
+            return recolhimentosRef.value.filter(item => {
+                const chave = `${item.assistencia.lat}-${item.assistencia.lng}`;
+                if (vistos.has(chave)) {
+                    return false;
+                }
+                vistos.add(chave);
+                return true;
+            }).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
+        });
+
+        const outrosFretesColetasUnicas = computed(() => {
+            const vistos = new Set();
+            return outrosFretesRef.value.filter(item => {
+                const chave = `${item.coleta.lat}-${item.coleta.lng}`;
+                if (vistos.has(chave)) {
+                    return false;
+                }
+                vistos.add(chave);
+                return true;
+            }).sort((a, b) => a.numeroPedido - b.numeroPedido);
+        });
+
+        const outrosFretesEntregasUnicas = computed(() => {
+            const todasAsEntregas = outrosFretesRef.value.flatMap(coletaObj => coletaObj.coleta.entregas);
+
+            const vistos = new Set();            
+            return todasAsEntregas.filter(entrega => {
+                const chave = `${entrega.lat}-${entrega.lng}`;
+                if (vistos.has(chave)) {
+                    return false;
+                }
+                vistos.add(chave);
+                return true;
+            }).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
+        });
+
         const enderecosDocumentos = computed(() => {
-            return pedidosUnicos.value.map(pedidoObj => ({
-                possivelSaida: false,
-                endereco: pedidoObj.pedido.endereco,
-                lat: pedidoObj.pedido.lat,
-                lng: pedidoObj.pedido.lng,
-                sequenciaEntrega: pedidoObj.pedido.sequenciaEntrega,
-                numeroPedido: pedidoObj.pedido.numeroPedido,
-                cliente: pedidoObj.pedido.cliente,
-            }));
+            let pedidos = [];
+            let recolhimentos = [];
+            let coletas = [];
+            let entregas = [];
+
+            if (filtrosPontos.exibirPedidos) {
+                pedidos = pedidosUnicos.value.map(pedidoObj => ({
+                    possivelSaida: false,
+                    endereco: pedidoObj.pedido.endereco,
+                    lat: pedidoObj.pedido.lat,
+                    lng: pedidoObj.pedido.lng,
+                    sequenciaEntrega: pedidoObj.pedido.sequenciaEntrega,
+                    numeroPedido: pedidoObj.pedido.numeroPedido,
+                    cliente: pedidoObj.pedido.cliente,
+                    tipo: "PEDIDO",
+                    icon: "red",
+                }));
+            }
+
+            if (filtrosPontos.exibirRecolhimentos) {
+                recolhimentos = recolhimentosUnicos.value.map(recolhimentoObj => ({
+                    possivelSaida: false,
+                    endereco: recolhimentoObj.assistencia.endereco,
+                    lat: recolhimentoObj.assistencia.lat,
+                    lng: recolhimentoObj.assistencia.lng,
+                    sequenciaEntrega: recolhimentoObj.assistencia.sequenciaEntrega,
+                    numeroPedido: recolhimentoObj.assistencia.numeroPedido,
+                    cliente: recolhimentoObj.assistencia.cliente,
+                    tipo: "RECOLHIMENTO",
+                    icon: "green",
+                }));
+            }
+
+            if (filtrosPontos.exibirOutrosFretes) {
+                coletas = outrosFretesColetasUnicas.value.map(coletaObj => ({
+                    possivelSaida: false,
+                    endereco: coletaObj.coleta.endereco,
+                    lat: coletaObj.coleta.lat,
+                    lng: coletaObj.coleta.lng,
+                    numeroPedido: coletaObj.coleta.numeroPedido,
+                    cliente: coletaObj.coleta.cliente,
+                    tipo: "OUTROS FRETES - COLETA",
+                    icon: "orange",
+                }));
+
+                entregas = outrosFretesEntregasUnicas.value.map(entregaObj => ({
+                    possivelSaida: false,
+                    endereco: entregaObj.endereco,
+                    lat: entregaObj.lat,
+                    lng: entregaObj.lng,
+                    sequenciaEntrega: entregaObj.sequenciaEntrega,
+                    numeroPedido: entregaObj.numeroPedido,
+                    cliente: entregaObj.cliente,
+                    tipo: "OUTROS FRETES - ENTREGA",
+                    icon: "purple"
+                }));                
+            }
+            
+            const documentos = pedidos.concat(recolhimentos).concat(coletas).concat(entregas);
+            const retorno = [...new Set(documentos.map(item => item))];
+            return retorno;
         });
 
         const enderecosDestinos = computed(() => {
@@ -369,14 +463,13 @@ const app = createApp({
             const todosEnderecosIncluidosNaRota = enderecosEmpresaIncluidosNaRota.concat(enderecosDocumentos.value);
             const saidaOrigem = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoSaida);
             const destinoFinal = todosEnderecosIncluidosNaRota.find(item => item.endereco === opcoesRota.pontoDestino);
-
+            
             const waypoints = todosEnderecosIncluidosNaRota.filter(item =>
                 item.endereco !== opcoesRota.pontoSaida &&
                 item.endereco !== opcoesRota.pontoDestino
             ).sort((a, b) => a.sequenciaEntrega - b.sequenciaEntrega);
-            
-            let listaOrdenada = [saidaOrigem].concat(waypoints).concat([destinoFinal]);
-            return listaOrdenada;
+
+            return [saidaOrigem].concat(waypoints).concat([destinoFinal]);
         });
 
         const enderecosDistintos = computed(() => {
@@ -392,13 +485,40 @@ const app = createApp({
                 console.error("❌ Erro ao salvar no localStorage:", error);
             }
         }
+
         watch(opcoesRota, async () => {
-                setParametrosStorage("opcoesRota", opcoesRota);
-                if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
+            setParametrosStorage("opcoesRota", opcoesRota);
+            if (typeof google !== "undefined" && typeof google.maps !== "undefined")
+                await calcularRota();
+        }, { deep: true } );
+
+        const filtrosPontos = reactive({
+            exibirPedidos: true,
+            exibirOutrosFretes: true,
+            exibirRecolhimentos: true,
+        });
+
+        function initFiltrosPontos(objetoFiltrosPontos) {
+            if (objetoFiltrosPontos) {
+                filtrosPontos.exibirPedidos = objetoFiltrosPontos.exibirPedidos;
+                filtrosPontos.exibirOutrosFretes = objetoFiltrosPontos.exibirOutrosFretes;
+                filtrosPontos.exibirRecolhimentos = objetoFiltrosPontos.exibirRecolhimentos;
+            } else {
+                filtrosPontos.exibirPedidos = true;
+                filtrosPontos.exibirOutrosFretes = true;
+                filtrosPontos.exibirRecolhimentos = true;
+            }
+        }
+
+        watch(filtrosPontos, async () => {
+            try {
+                setParametrosStorage("filtrosPontos", filtrosPontos);                
+                if (typeof google !== "undefined" && typeof google.maps !== "undefined")
                     await calcularRota();
-                }
-            }, { deep: true }
-        );
+            } catch (error) {
+                console.error(error);
+            }
+        }, { deep: true });        
 
         function getParametrosStorage(chave) {
             try {
@@ -407,15 +527,23 @@ const app = createApp({
                     throw new Error("Chave não encontrada na storage");
                 }
                 const dataObject = JSON.parse(jsonString);
-                initOpcoesRota(dataObject);
+                if (chave === "opcoesRota")
+                    initOpcoesRota(dataObject);
+                if (chave === "filtrosPontos")
+                    initFiltrosPontos(dataObject);
             } catch (error) {
                 console.error(error);
-                initOpcoesRota(null);
+                if (chave === "opcoesRota")
+                    initOpcoesRota(null);
+                if (chave === "filtrosPontos")
+                    initFiltrosPontos(null);
                 return null;
             }
         }
+
         onBeforeMount(() => {
             getParametrosStorage("opcoesRota");
+            getParametrosStorage("filtrosPontos");
         });
 
         onMounted(async () => {
@@ -442,10 +570,12 @@ const app = createApp({
             toggleDrawer,
             dialogState,
             fecharDialog,
+            outrosFretesRef,
+            recolhimentosRef,
             pedidosRef,
             enderecosEmpresaRef,
-            enderecosDestinos,
             enderecosDistintos,
+            filtrosPontos,
         }
     }
 });
