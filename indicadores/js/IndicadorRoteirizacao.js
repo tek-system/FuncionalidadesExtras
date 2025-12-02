@@ -424,7 +424,7 @@ const app = createApp({
                 }));
             }
 
-            if (filtrosPontos.exibirOutrosFretes) {
+            if (filtrosPontos.exibirOutrosFretesColetas) {
                 coletas = outrosFretesColetasUnicas.value.map(coletaObj => ({
                     possivelSaida: false,
                     endereco: coletaObj.coleta.endereco,
@@ -435,8 +435,10 @@ const app = createApp({
                     tipo: "OUTROS FRETES - COLETA",
                     icon: "orange",
                 }));
+            }
 
-                entregas = outrosFretesEntregasUnicas.value.map(entregaObj => ({
+            if (filtrosPontos.exibirOutrosFretesEntregas) {
+                    entregas = outrosFretesEntregasUnicas.value.map(entregaObj => ({
                     possivelSaida: false,
                     endereco: entregaObj.endereco,
                     lat: entregaObj.lat,
@@ -446,9 +448,9 @@ const app = createApp({
                     cliente: entregaObj.cliente,
                     tipo: "OUTROS FRETES - ENTREGA",
                     icon: "purple"
-                }));                
+                }));
             }
-            
+
             const documentos = pedidos.concat(recolhimentos).concat(coletas).concat(entregas);
             const retorno = [...new Set(documentos.map(item => item))];
             return retorno;
@@ -494,19 +496,22 @@ const app = createApp({
 
         const filtrosPontos = reactive({
             exibirPedidos: true,
-            exibirOutrosFretes: true,
-            exibirRecolhimentos: true,
+            exibirOutrosFretesColetas: false,
+            exibirOutrosFretesEntregas: false,
+            exibirRecolhimentos: false,
         });
 
         function initFiltrosPontos(objetoFiltrosPontos) {
             if (objetoFiltrosPontos) {
                 filtrosPontos.exibirPedidos = objetoFiltrosPontos.exibirPedidos;
-                filtrosPontos.exibirOutrosFretes = objetoFiltrosPontos.exibirOutrosFretes;
+                filtrosPontos.exibirOutrosFretesColetas = objetoFiltrosPontos.exibirOutrosFretesColetas;
+                filtrosPontos.exibirOutrosFretesEntregas = objetoFiltrosPontos.exibirOutrosFretesEntregas;
                 filtrosPontos.exibirRecolhimentos = objetoFiltrosPontos.exibirRecolhimentos;
             } else {
                 filtrosPontos.exibirPedidos = true;
-                filtrosPontos.exibirOutrosFretes = true;
-                filtrosPontos.exibirRecolhimentos = true;
+                filtrosPontos.exibirOutrosFretesColetas = false;
+                filtrosPontos.exibirOutrosFretesEntregas = false;
+                filtrosPontos.exibirRecolhimentos = false;
             }
         }
 
