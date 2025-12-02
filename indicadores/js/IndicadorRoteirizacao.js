@@ -1,6 +1,12 @@
 const { createApp, ref, reactive, onBeforeMount, onMounted, computed, watch, nextTick, markRaw } = Vue;
 const { createVuetify } = Vuetify;
-const { outrosFretes, recolhimentos, pedidos, enderecosEmpresa } = window.DATA_ROTEIRIZAR;
+
+const { 
+    outrosFretes = [], 
+    recolhimentos = [], 
+    pedidos = [], 
+    enderecosEmpresa = [] 
+} = window.DATA_ROTEIRIZAR || {};
 
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
@@ -148,6 +154,7 @@ const app = createApp({
                     "bg-red-darken-4",
                     "text-red-darken-4"
                 );
+            } finally {
                 loading.value = false;
             }
         }
@@ -163,7 +170,6 @@ const app = createApp({
             }
 
             try {
-                loading.value = true;
                 const renderer = directionsRenderer.value;
                 const result = await directionsService.value.route(request);
                 renderer.setDirections(result);
@@ -177,8 +183,6 @@ const app = createApp({
                     "bg-red-darken-4",
                     "text-red-darken-4"
                 );
-            } finally {
-                loading.value = false;
             }
         }
 
@@ -396,7 +400,7 @@ const app = createApp({
             let coletas = [];
             let entregas = [];
 
-            if (filtrosPontos.exibirPedidos) {
+            if (filtrosPontos.exibirPedidos && pedidosRef.value) {
                 pedidos = pedidosUnicos.value.map(pedidoObj => ({
                     possivelSaida: false,
                     endereco: pedidoObj.pedido.endereco,
@@ -410,7 +414,7 @@ const app = createApp({
                 }));
             }
 
-            if (filtrosPontos.exibirRecolhimentos) {
+            if (filtrosPontos.exibirRecolhimentos && recolhimentosRef.value) {
                 recolhimentos = recolhimentosUnicos.value.map(recolhimentoObj => ({
                     possivelSaida: false,
                     endereco: recolhimentoObj.assistencia.endereco,
@@ -424,7 +428,7 @@ const app = createApp({
                 }));
             }
 
-            if (filtrosPontos.exibirOutrosFretesColetas) {
+            if (filtrosPontos.exibirOutrosFretesColetas && outrosFretesRef.value) {
                 coletas = outrosFretesColetasUnicas.value.map(coletaObj => ({
                     possivelSaida: false,
                     endereco: coletaObj.coleta.endereco,
@@ -437,7 +441,7 @@ const app = createApp({
                 }));
             }
 
-            if (filtrosPontos.exibirOutrosFretesEntregas) {
+            if (filtrosPontos.exibirOutrosFretesEntregas && outrosFretesRef.value) {
                     entregas = outrosFretesEntregasUnicas.value.map(entregaObj => ({
                     possivelSaida: false,
                     endereco: entregaObj.endereco,
@@ -549,6 +553,9 @@ const app = createApp({
         onBeforeMount(() => {
             getParametrosStorage("opcoesRota");
             getParametrosStorage("filtrosPontos");
+            
+            opcoesRota.pontoSaida = enderecosEmpresaRef.value[0].endereco;
+            opcoesRota.pontoDestino = enderecosEmpresaRef.value[0].endereco;
         });
 
         onMounted(async () => {
