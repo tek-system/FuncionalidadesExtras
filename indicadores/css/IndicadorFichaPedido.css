@@ -1,0 +1,39 @@
+body, .v-application {
+    font-family: "Inter", sans-serif;
+}
+
+#mapDiv {
+    height: 400px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.linha-selecionada {
+    background-color: #E3F2FD !important;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.linha-selecionada:hover {
+    background-color: #BBDEFB !important;
+}
+
+.v-data-table__tr:hover td {
+    background-color: #E3F2FD !important;
+    cursor: pointer;
+}
+
+.card-dialog-title {
+    flex: 0 0 auto;
+}
+
+.card-dialog-text {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.card-dialog-actions {
+    flex: 0 0 auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
