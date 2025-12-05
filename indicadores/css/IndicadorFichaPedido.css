@@ -24,6 +24,10 @@ body, .v-application {
     cursor: pointer;
 }
 
+.v-tab:not(:last-child) {
+    border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
 .card-dialog-title {
     flex: 0 0 auto;
 }
