@@ -46,8 +46,8 @@ const app = createApp({
             const dataPedido = dataRef.value.GERAL.VALORES_TABELA[0];
             const dataEntrega = dataRef.value.ENTREGA.VALORES_TABELA[0];
 
-            const lat = dataEntrega[1];
-            const lng = dataEntrega[2];
+            const lat = dataEntrega[18];
+            const lng = dataEntrega[19];
 
             if (!mapDiv.value || !lat || lat === "0" || lat === 0) {
                 abrirDialog("Erro ao carregar o mapa!", "Não foi possível abrir o mapa por falta de coordenadas!", "bg-red-darken-4", "text-red-darken-4")
@@ -73,7 +73,7 @@ const app = createApp({
                         <p><span style="font-weight: bold;">Tipo:</span><strong> ${ dataPedido[5] }</strong></p>
                         <p><span style="font-weight: bold;">Pedido:</span> ${ dataPedido[0] || "N/A" }</p>
                         <p><span style="font-weight: bold;">Cliente:</span> ${ dataPedido[2] || "N/A" }</p>
-                        <p><span style="font-weight: bold;">Endereço:</span> ${ dataEntrega[0] }</p>
+                        <p><span style="font-weight: bold;">Endereço:</span> ${ dataEntrega[14] }</p>
                     </div>
                 `,
             });
