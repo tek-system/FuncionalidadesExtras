@@ -1,6 +1,6 @@
 const { createApp, ref, reactive, onMounted, computed, watch, nextTick } = Vue;
 const { createVuetify } = Vuetify;
-const { data = [] } = window.DATA_TABELA || {};
+const { data = [] } = window.DATA || {};
 
 const vuetify = createVuetify({
     theme: { defaultTheme: "light" }
