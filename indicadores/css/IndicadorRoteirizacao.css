@@ -1,0 +1,32 @@
+body, .v-application {
+    font-family: "Inter", sans-serif;
+}
+
+#mapDiv {
+    height: 100vh;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.fixed-overlay-button {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 2000;
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.fixed-overlay-button .v-col {
+    padding: 16px;
+}
+
+.fixed-overlay-metricas {
+    font-size: smaller;
+    width: 110%;
+    padding-left: 1rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 2000;
+    transition: right 0.3s ease-in-out;
+}
