@@ -138,7 +138,7 @@ const app = createApp({
             try {
                 loading.value = true;
 
-                if (pedidosRef.value.length === 0)
+                if (pedidosRef.value.length === 0 && outrosFretesRef.value.length === 0 && recolhimentosRef.value.length === 0)
                     throw new Error("Nenhum ponto de entrega identificado!");
 
                 const result = await desenharRota();
@@ -500,9 +500,9 @@ const app = createApp({
 
         const filtrosPontos = reactive({
             exibirPedidos: true,
-            exibirOutrosFretesColetas: false,
-            exibirOutrosFretesEntregas: false,
-            exibirRecolhimentos: false,
+            exibirOutrosFretesColetas: true,
+            exibirOutrosFretesEntregas: true,
+            exibirRecolhimentos: true,
         });
 
         function initFiltrosPontos(objetoFiltrosPontos) {
@@ -513,9 +513,9 @@ const app = createApp({
                 filtrosPontos.exibirRecolhimentos = objetoFiltrosPontos.exibirRecolhimentos;
             } else {
                 filtrosPontos.exibirPedidos = true;
-                filtrosPontos.exibirOutrosFretesColetas = false;
-                filtrosPontos.exibirOutrosFretesEntregas = false;
-                filtrosPontos.exibirRecolhimentos = false;
+                filtrosPontos.exibirOutrosFretesColetas = true;
+                filtrosPontos.exibirOutrosFretesEntregas = true;
+                filtrosPontos.exibirRecolhimentos = true;
             }
         }
 
