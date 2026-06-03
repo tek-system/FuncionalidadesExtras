@@ -1,0 +1,38 @@
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    height: 100% !important;
+}
+
+.v-application {
+    font-family: "Inter", sans-serif;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+#mapDiv {
+    height: 100% !important; 
+    width: 100% !important;
+}
+
+.fixed-overlay-button {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 2000;
+}
+
+.fixed-overlay-button .v-col {
+    padding: 16px;
+}
+
+.fixed-overlay-metricas {
+    font-size: smaller;
+    width: 100% !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 2000;
+    margin: 0 !important;
+}
